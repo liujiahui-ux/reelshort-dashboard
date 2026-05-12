@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ReelShort 恢复投放提醒看板</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f0f2f5;color:#1a1a2e;line-height:1.6}
+.header{background:linear-gradient(135deg,#0f3460 0%,#16213e 100%);color:#fff;padding:28px 32px;position:sticky;top:0;z-index:100}
+.header h1{font-size:22px;font-weight:700;margin-bottom:4px}
+.header .sub{font-size:13px;opacity:.75;display:flex;gap:20px;flex-wrap:wrap}
+.container{max-width:1100px;margin:0 auto;padding:24px 16px}
+.summary-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+.summary-card{background:#fff;border-radius:12px;padding:24px;box-shadow:0 1px 4px rgba(0,0,0,.06);text-align:center}
+.summary-card .num{font-size:42px;font-weight:800;margin:8px 0}
+.summary-card .label{font-size:14px;color:#666}
+.card-green{border-left:5px solid #27ae60}
+.card-green .num{color:#27ae60}
+.card-orange{border-left:5px solid #e67e22}
+.card-orange .num{color:#e67e22}
+.section{background:#fff;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);margin-bottom:24px;overflow:hidden}
+.section-header{padding:18px 24px;font-size:16px;font-weight:700;display:flex;align-items:center;gap:10px;border-bottom:1px solid #eee}
+.section-header .icon{font-size:22px}
+.section-header .count{background:#e8e8e8;color:#555;font-size:12px;padding:2px 10px;border-radius:20px;font-weight:600}
+.section-green .section-header{color:#27ae60;background:#f0faf4}
+.section-green .section-header .count{background:#27ae60;color:#fff}
+.section-orange .section-header{color:#e67e22;background:#fef7f0}
+.section-orange .section-header .count{background:#e67e22;color:#fff}
+table{width:100%;border-collapse:collapse}
+th{background:#f7f8fa;padding:12px 16px;text-align:left;font-size:13px;color:#888;font-weight:600;border-bottom:1px solid #eee}
+td{padding:14px 16px;font-size:14px;border-bottom:1px solid #f0f0f0}
+tr:hover td{background:#fafbfc}
+.badge-ready{display:inline-block;background:#27ae60;color:#fff;font-size:12px;padding:3px 12px;border-radius:20px;font-weight:600}
+.badge-cooling{display:inline-block;background:#e67e22;color:#fff;font-size:12px;padding:3px 12px;border-radius:20px;font-weight:600}
+.progress-bar{width:100%;height:6px;background:#eee;border-radius:3px;overflow:hidden;margin-top:6px}
+.progress-fill{height:100%;border-radius:3px;transition:width .3s}
+.fill-green{background:#27ae60}
+.fill-orange{background:#e67e22}
+.days-left{font-weight:700;font-size:16px;color:#e67e22}
+.recovery-date{font-size:12px;color:#999;margin-top:2px}
+.empty-state{padding:40px;text-align:center;color:#bbb;font-size:15px}
+.empty-state .empty-icon{font-size:48px;margin-bottom:12px}
+.drama-name{max-width:280px;word-break:break-word}
+.link-row{padding:16px 24px;text-align:center;border-top:1px solid #eee}
+.link-row a{color:#0f3460;text-decoration:none;font-size:13px;font-weight:600}
+.link-row a:hover{text-decoration:underline}
+.footer{text-align:center;padding:20px;font-size:12px;color:#aaa}
+@media(max-width:600px){
+  .summary-row{grid-template-columns:1fr}
+  .header h1{font-size:18px}
+  td,th{padding:10px 12px;font-size:13px}
+  .drama-name{max-width:160px}
+}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>ReelShort 恢复投放提醒看板</h1>
+  <div class="sub">
+    <span id="hdrUpdate">数据更新：--</span>
+    <span id="hdrToday">当前日期：--</span>
+    <span>冷却期：14天（次日起算）</span>
+  </div>
+</div>
+
+<div class="container">
+  <div class="summary-row">
+    <div class="summary-card card-green">
+      <div class="label">今日可申请恢复</div>
+      <div class="num" id="readyCount">0</div>
+      <div class="label">组（优化师×剧目）</div>
+    </div>
+    <div class="summary-card card-orange">
+      <div class="label">冷却中（暂不可恢复）</div>
+      <div class="num" id="coolingCount">0</div>
+      <div class="label">组（优化师×剧目）</div>
+    </div>
+  </div>
+
+  <div class="section section-green" id="readySection">
+    <div class="section-header">
+      <span class="icon">✅</span>
+      <span>今日可申请恢复投放</span>
+      <span class="count" id="readyBadge">0</span>
+    </div>
+    <div id="readyBody"></div>
+  </div>
+
+  <div class="section section-orange" id="coolingSection">
+    <div class="section-header">
+      <span class="icon">⏳</span>
+      <span>冷却倒计时</span>
+      <span class="count" id="coolingBadge">0</span>
+    </div>
+    <div id="coolingBody"></div>
+  </div>
+
+  <div class="link-row">
+    <a href="index.html">&larr; 返回主监控看板</a>
+  </div>
+</div>
+
+<div class="footer">
+  ReelShort 跟投管理系统 · 仅限内部使用 · 被动停投冷却期14天（次日起算）
+</div>
+
+<script src="recovery_data.js"></script>
+<script>
+(function(){
+  var today = new Date();
+  today = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+  document.getElementById("hdrUpdate").textContent = "数据更新：" + RECOVERY_META.update;
+  document.getElementById("hdrToday").textContent = "当前日期：" + fmt(today);
+
+  var ready = [];
+  var cooling = [];
+
+  for (var i = 0; i < STOP_RECORDS.length; i++) {
+    var r = STOP_RECORDS[i];
+    var optimizer = r[0];
+    var drama = r[1];
+    var stopDate = parseDate(r[2]);
+    var recoveryDate = new Date(stopDate);
+    recoveryDate.setDate(recoveryDate.getDate() + RECOVERY_META.cooldown + 1);
+    var diffMs = recoveryDate.getTime() - today.getTime();
+    var daysLeft = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+    var elapsed = Math.floor((today.getTime() - stopDate.getTime()) / (1000*60*60*24));
+    var cooledDays = Math.max(0, elapsed - 1);
+    var progress = Math.min(100, Math.round(cooledDays / RECOVERY_META.cooldown * 100));
+    var item = {optimizer:optimizer, drama:drama, stopDate:stopDate, recoveryDate:recoveryDate, daysLeft:daysLeft, progress:progress, cooledDays:cooledDays};
+    if (daysLeft <= 0) { ready.push(item); } else { cooling.push(item); }
+  }
+  ready.sort(function(a,b){ return a.stopDate - b.stopDate; });
+  cooling.sort(function(a,b){ return a.daysLeft - b.daysLeft; });
+
+  document.getElementById("readyCount").textContent = ready.length;
+  document.getElementById("coolingCount").textContent = cooling.length;
+  document.getElementById("readyBadge").textContent = ready.length;
+  document.getElementById("coolingBadge").textContent = cooling.length;
+
+  if (ready.length === 0) {
+    document.getElementById("readyBody").innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div>今日暂无可恢复的投放组合<br><small>当冷却期满14天后，对应组合会出现在这里</small></div>';
+  } else {
+    var html = '<table><thead><tr><th>优化师</th><th>剧目</th><th>停投日期</th><th>可恢复日期</th><th>状态</th></tr></thead><tbody>';
+    for (var j = 0; j < ready.length; j++) {
+      var it = ready[j];
+      html += '<tr><td><strong>' + esc(it.optimizer) + '</strong></td>'
+        + '<td class="drama-name">' + esc(it.drama) + '</td>'
+        + '<td>' + fmt(it.stopDate) + '</td>'
+        + '<td>' + fmt(it.recoveryDate) + '</td>'
+        + '<td><span class="badge-ready">可申请恢复</span></td></tr>';
+    }
+    html += '</tbody></table>';
+    document.getElementById("readyBody").innerHTML = html;
+  }
+  if (cooling.length === 0) {
+    document.getElementById("coolingBody").innerHTML = '<div class="empty-state"><div class="empty-icon">🎉</div>所有被动停投组合均已度过冷却期！</div>';
+  } else {
+    var html2 = '<table><thead><tr><th>优化师</th><th>剧目</th><th>停投日期</th><th>剩余天数</th><th>冷却进度</th></tr></thead><tbody>';
+    for (var k = 0; k < cooling.length; k++) {
+      var c = cooling[k];
+      html2 += '<tr><td><strong>' + esc(c.optimizer) + '</strong></td>'
+        + '<td class="drama-name">' + esc(c.drama) + '</td>'
+        + '<td>' + fmt(c.stopDate) + '</td>'
+        + '<td><div class="days-left">' + c.daysLeft + ' 天</div>'
+        + '<div class="recovery-date">' + fmt(c.recoveryDate) + ' 可恢复</div></td>'
+        + '<td style="min-width:120px"><div style="font-size:12px;color:#888;margin-bottom:2px">'
+        + c.cooledDays + ' / ' + RECOVERY_META.cooldown + ' 天</div>'
+        + '<div class="progress-bar"><div class="progress-fill fill-orange" style="width:'
+        + c.progress + '%"></div></div></td></tr>';
+    }
+    html2 += '</tbody></table>';
+    document.getElementById("coolingBody").innerHTML = html2;
+  }
+
+  function parseDate(s) {
+    var p = s.split("-");
+    return new Date(parseInt(p[0]), parseInt(p[1])-1, parseInt(p[2]));
+  }
+
+  function fmt(d) {
+    var m = d.getMonth() + 1;
+    var day = d.getDate();
+    return d.getFullYear() + "-" + (m<10?"0":"") + m + "-" + (day<10?"0":"") + day;
+  }
+
+  function esc(s) {
+    var d = document.createElement("div");
+    d.appendChild(document.createTextNode(s));
+    return d.innerHTML;
+  }
+})();
+</script>
+</body>
+</html>
