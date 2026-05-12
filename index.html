@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ReelShort 跟投监控看板</title>
+<style>
+:root { --navy: #1B3A5C; --blue: #2E5B8A; --red: #E74C3C; --black: #333; --yellow: #F39C12; --green: #27AE60; --gray: #95A5A6; --stopped: #8E99A4; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; background: #F0F2F5; color: #333; }
+.header { background: var(--navy); color: white; padding: 20px 30px; }
+.header h1 { font-size: 22px; }
+.header .sub { font-size: 13px; opacity: 0.8; margin-top: 4px; }
+.accent { height: 3px; background: #D4730E; }
+.container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+.stats { display: flex; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
+.stat-card { flex: 1; min-width: 100px; background: white; border-radius: 8px; padding: 14px 10px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.stat-card .num { font-size: 26px; font-weight: 700; }
+.stat-card .label { font-size: 11px; color: #888; margin-top: 2px; }
+.c-stop .num { color: var(--black); } .c-cancel .num { color: var(--red); }
+.c-reduce .num { color: var(--yellow); } .c-normal .num { color: var(--green); }
+.c-insuf .num { color: var(--gray); } .c-stopped .num { color: var(--stopped); }
+.section-label { font-size: 12px; color: #666; margin-bottom: 4px; font-weight: 600; }
+.controls { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+.controls input, .controls select { padding: 8px 12px; border: 1px solid #DDD; border-radius: 6px; font-size: 13px; }
+.controls input { width: 200px; } .controls select { min-width: 120px; }
+.btn-export { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; background: var(--blue); color: white; }
+.count-info { font-size: 13px; color: #888; margin-bottom: 8px; }
+.filter-note { font-size: 12px; color: #E67E22; margin-bottom: 12px; padding: 8px 12px; background: #FFF8E1; border-radius: 6px; border-left: 3px solid #F39C12; }
+.table-wrap { background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { background: var(--navy); color: white; padding: 10px 12px; text-align: left; position: sticky; top: 0; cursor: pointer; white-space: nowrap; }
+th:hover { background: #234B6E; }
+td { padding: 8px 12px; border-bottom: 1px solid #F0F0F0; }
+tr:hover { background: #F8F9FA; }
+.badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.badge-stop { background: var(--black); color: white; }
+.badge-cancel { background: var(--red); color: white; }
+.badge-reduce { background: var(--yellow); color: #333; }
+.badge-normal { background: #E8F5E9; color: var(--green); }
+.badge-insuf { background: #F5F5F5; color: #999; }
+.badge-stopped { background: #E0E0E0; color: #666; border: 1px dashed #AAA; }
+.roas-dead { color: white; background: var(--black); padding: 2px 6px; border-radius: 4px; }
+.roas-bad { color: var(--red); font-weight: 600; }
+.roas-warn { color: #E67E22; }
+.roas-ok { color: var(--green); }
+.footer { text-align: center; padding: 20px; color: #999; font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>ReelShort 英语原创剧目 - 跟投监控看板</h1>
+  <div class="sub" id="subtitle">加载中...</div>
+</div>
+<div class="accent"></div>
+<div class="container">
+  <div class="filter-note" id="filterNote">加载数据中...</div>
+  <div id="statsArea"></div>
+  <div class="controls" style="margin-top:16px;">
+    <input type="text" id="search" placeholder="搜索优化师或剧目..." oninput="filterTable()">
+    <select id="statusFilter" onchange="filterTable()">
+      <option value="">全部状态</option>
+      <option value="需行动">需行动（止损+取消+降量）</option>
+      <option value="止损">止损</option><option value="取消">取消</option><option value="降量">降量</option>
+      <option value="已停投">已停投（全部）</option>
+      <option value="已停投(止损)">已停投(止损)</option><option value="已停投(取消)">已停投(取消)</option><option value="已停投(降量)">已停投(降量)</option>
+      <option value="正常">正常</option><option value="数据不足">数据不足</option>
+    </select>
+    <select id="optimizerFilter" onchange="filterTable()"></select>
+    <button class="btn-export" onclick="exportCSV()">导出CSV</button>
+  </div>
+  <div class="count-info" id="countInfo"></div>
+  <div class="table-wrap">
+    <table id="mainTable">
+      <thead><tr>
+        <th onclick="sortTable(0)">优化师 &#8597;</th><th onclick="sortTable(1)">剧盬 &#8597;</th>
+        <th onclick="sortTable(2)">投放天数 &#8597;</th><th onclick="sortTable(3)">累计花费($) &#8597;</th>
+        <th onclick="sortTable(4)">累计ROAS &#8597;</th><th onclick="sortTable(5)">D-1 ROAS &#8597;</th>
+        <th onclick="sortTable(6)">D-2 ROAS &#8597;</th><th onclick="sortTable(7)">D-3 ROAS &#8597;</th>
+        <th onclick="sortTable(8)">3天花费($) &#8597;</th><th onclick="sortTable(9)">状态 &#8597;</th><th>建议操作</th>
+      </tr></thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+</div>
+<div class="footer">ReelShort UA Team | 跟投管理政策 v1.0 | 评估粒度：优化师 × 剧目</div>
+<script src="data.js"></script>
+<script>
+function roasClass(v) {
+  if (v===null||v===undefined) return '';
+  if (v<20) return 'roas-dead'; if (v<25) return 'roas-bad';
+  if (v<27) return 'roas-warn'; if (v>=30) return 'roas-ok'; return '';
+}
+function badgeClass(s) {
+  if (s==='止损') return 'badge-stop'; if (s==='取消') return 'badge-cancel';
+  if (s==='降量') return 'badge-reduce'; if (s==='正常') return 'badge-normal';
+  if (s==='数据不足') return 'badge-insuf';
+  if (s.startsWith('已停投')) return 'badge-stopped'; return 'badge-normal';
+}
+function fmtRoas(v) { return (v===null||v===undefined) ? '-' : v.toFixed(1)+'%'; }
+function initDashboard() {
+  if (typeof DATA === 'undefined') { document.getElementById('filterNote').textContent='错误：无法加载数据文件 data.js'; return; }
+  var c={};DATA.forEach(function(d){c[d.st]=(c[d.st]||0)+1;});
+  document.getElementById('subtitle').textContent='数据范围：2026-01-01 ~ 2026-05-11 | 更新时间：'+(DATA_META||{update:'未知'}).update;
+  document.getElementById('filterNote').innerHTML='仅显示近7天内有消耗的活跃组合（共'+DATA.length+'个），已自动过滤非活跃/休假人员。<br><b>状态说明：</b>需行动的状态仅针对最新日期仍有消耗的组合；已停投标记仅供参考。';
+  var h='<div class="section-label">需行动</div><div class="stats">';
+  h+='<div class="stat-card c-stop"><div class="num">'+(c['止损']||0)+'</div><div class="label">止损（立即取消）</div></div>';
+  h+='<div class="stat-card c-cancel"><div class="num">'+(c['取消']||0)+'</div><div class="label">取消跟投</div></div>';
+  h+='<div class="stat-card c-reduce"><div class="num">'+(c['降量']||0)+'</div><div class="label">预警降量</div></div></div>';
+  h+='<div class="section-label" style="margin-top:8px;">已停投（仅供参考）</div><div class="stats">';
+  h+='<div class="stat-card c-stopped"><div class="num">'+(c['已停投(止损)']||0)+'</div><div class="label">已停投(止损)</div></div>';
+  h+='<div class="stat-card c-stopped"><div class="num">'+(c['已停投(取消)']||0)+'</div><div class="label">已停投(取消)</div></div>';
+  h+='<div class="stat-card c-stopped"><div class="num">'+(c['已停投(降量)']||0)+'</div><div class="label">已停投(降量)</div></div></div>';
+  h+='<div class="section-label" style="margin-top:8px;">其他</div><div class="stats">';
+  h+='<div class="stat-card c-normal"><div class="num">'+(c['正常']||0)+'</div><div class="label">正常</div></div>';
+  h+='<div class="stat-card c-insuf"><div class="num">'+(c['数据不足']||0)+'</div><div class="label">数据不足</div></div></div>';
+  document.getElementById('statsArea').innerHTML=h;
+  var opts=[...new Set(DATA.map(function(d){return d.o;}))].sort();
+  document.getElementById('optimizerFilter').innerHTML='<option value="">全部优化师</option>'+opts.map(function(o){return '<option value="'+o+'">'+o+'</option>';}).join('');
+  renderTable(DATA);
+}
+function renderTable(data) {
+  document.getElementById('tableBody').innerHTML = data.map(function(d){return '<tr>'+
+    '<td><b>'+d.o+'</b></td><td>'+d.d+'</td>'+
+    '<td style="text-align:center">'+d.days+'</td>'+
+    '<td style="text-align:right">'+d.spend.toLocaleString()+'</td>'+
+    '<td class="'+roasClass(d.roas)+'" style="text-align:center;font-weight:600">'+fmtRoas(d.roas)+'</td>'+
+    '<td class="'+roasClass(d.r1)+'" style="text-align:center">'+fmtRoas(d.r1)+'</td>'+
+    '<td class="'+roasClass(d.r2)+'" style="text-align:center">'+fmtRoas(d.r2)+'</td>'+
+    '<td class="'+roasClass(d.r3)+'" style="text-align:center">'+fmtRoas(d.r3)+'</td>'+
+    '<td style="text-align:right">'+d.s3.toLocaleString()+'</td>'+
+    '<td><span class="badge '+badgeClass(d.st)+'">'+d.st+'</span></td>'+
+    '<td style="font-size:12px;color:#666">'+d.act+'</td></tr>';}).join('');
+  document.getElementById('countInfo').textContent='显示 '+data.length+' 条（共 '+DATA.length+' 条活跃记录）';
+}
+function filterTable() {
+  var s=document.getElementById('search').value.toLowerCase();
+  var st=document.getElementById('statusFilter').value;
+  var op=document.getElementById('optimizerFilter').value;
+  renderTable(DATA.filter(function(d){
+    if(s&&d.o.toLowerCase().indexOf(s)<0&&d.d.toLowerCase().indexOf(s)<0) return false;
+    if(st){if(st==='需行动'){if(['止损','取消','降量'].indexOf(d.st)<0)return false;}else if(st==='已停投'){if(d.st.indexOf('已停投')!==0)return false;}else{if(d.st!==st)return false;}}
+    if(op&&d.o!==op)return false; return true;
+  }));
+}
+var sortCol=-1,sortAsc=true;
+function sortTable(col) {
+  if(sortCol===col)sortAsc=!sortAsc;else{sortCol=col;sortAsc=true;}
+  var keys=['o','d','days','spend','roas','r1','r2','r3','s3','st'];
+  DATA.sort(function(a,b){var va=a[keys[col]],vb=b[keys[col]];if(va===null)va=-999;if(vb===null)vb=-999;if(typeof va==='string')return sortAsc?va.localeCompare(vb):vb.localeCompare(va);return sortAsc?va-vb:vb-va;});
+  filterTable();
+}
+function exportCSV() {
+  var h=['优化师','剧目','投放天数','累计花费','累计ROAS(%)','D1_ROAS(%)','D2_ROAS(%)','D3_ROAS(%)','3天累计花费','状态','建议操作'];
+  var rows=DATA.map(function(d){return [d.o,'"'+d.d+'"',d.days,d.spend,d.roas,d.r1||'',d.r2||'',d.r3||'',d.s3,d.st,d.act];});
+  var csv='\uFEFF'+[h].concat(rows).map(function(r){return r.join(',');}).join('\n');
+  var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download='ReelShort跟投监控_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
+}
+initDashboard();
+</script>
+</body>
+</html>
