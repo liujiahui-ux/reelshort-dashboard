@@ -73,18 +73,18 @@ tr:hover { background: #F8F9FA; }
   <div class="table-wrap">
     <table id="mainTable">
       <thead><tr>
-        <th onclick="sortTable(0)">优化师 &#8597;</th><th onclick="sortTable(1)">剧盬 &#8597;</th>
+        <th onclick="sortTable(0)">优化师 &#8597;</th><th onclick="sortTable(1)">剧目 &#8597;</th>
         <th onclick="sortTable(2)">投放天数 &#8597;</th><th onclick="sortTable(3)">累计花费($) &#8597;</th>
         <th onclick="sortTable(4)">累计ROAS &#8597;</th><th onclick="sortTable(5)">D-1 ROAS &#8597;</th>
         <th onclick="sortTable(6)">D-2 ROAS &#8597;</th><th onclick="sortTable(7)">D-3 ROAS &#8597;</th>
-        <th onclick="sortTable(8)">3天花费($) &#8597;</th><th onclick="sortTable(9)">状态 &#8597;</th><th>建议操作</th>
+        <th onclick="sortTable(8)">3天花费($) &#8597;</th><th onclick="sortTable(9)">最新花费($) &#8597;</th><th onclick="sortTable(10)">状态 &#8597;</th><th>建议操作</th>
       </tr></thead>
       <tbody id="tableBody"></tbody>
     </table>
   </div>
 </div>
 <div class="footer">ReelShort UA Team | 跟投管理政策 v1.0 | 评估粒度：优化师 × 剧目</div>
-<script src="data.js?v=20260512b"></script>
+<script src="data.js?v=20260512c"></script>
 <script>
 function roasClass(v) {
   if (v===null||v===undefined) return '';
@@ -99,14 +99,10 @@ function badgeClass(s) {
 }
 function fmtRoas(v) { return (v===null||v===undefined) ? '-' : v.toFixed(1)+'%'; }
 function initDashboard() {
-  // Dynamic date range
-  var allDates=DATA.map(function(r){return r.date}).filter(Boolean).sort();
-  var minD=allDates[0],maxD=allDates[allDates.length-1];
-  document.getElementById("subtitle").textContent="数据范围："+minD+" ~ "+maxD+" | 更新时间："+DATA_META.update;
-
   if (typeof DATA === 'undefined') { document.getElementById('filterNote').textContent='错误：无法加载数据文件 data.js'; return; }
   var c={};DATA.forEach(function(d){c[d.st]=(c[d.st]||0)+1;});
-  document.getElementById('subtitle').textContent='数据范围：<span id="dateRange">加载中...</span><br><b>状态说明：</b>需行动的状态仅针对最新日期仍有消耗的组合；已停投标记仅供参考。';
+  var _ds=DATA.map(function(d){return d.date}).filter(Boolean).sort();document.getElementById('subtitle').textContent='数据范围：'+_ds[0]+' ~ '+_ds[_ds.length-1]+' | 更新时间：'+(DATA_META||{update:'未知'}).update;
+  document.getElementById('filterNote').innerHTML='仅显示近7天内有消耗的活跃组合（共'+DATA.length+'个），已自动过滤非活跃/休假人员。<br><b>状态说明：</b>需行动的状态仅针对最新日期仍有消耗的组合；已停投标记仅供参考。';
   var h='<div class="section-label">需行动</div><div class="stats">';
   h+='<div class="stat-card c-stop"><div class="num">'+(c['止损']||0)+'</div><div class="label">止损（立即取消）</div></div>';
   h+='<div class="stat-card c-cancel"><div class="num">'+(c['取消']||0)+'</div><div class="label">取消跟投</div></div>';
@@ -133,6 +129,7 @@ function renderTable(data) {
     '<td class="'+roasClass(d.r2)+'" style="text-align:center">'+fmtRoas(d.r2)+'</td>'+
     '<td class="'+roasClass(d.r3)+'" style="text-align:center">'+fmtRoas(d.r3)+'</td>'+
     '<td style="text-align:right">'+d.s3.toLocaleString()+'</td>'+
+    '<td style="text-align:right">'+(d.ds||0).toLocaleString()+'</td>'+
     '<td><span class="badge '+badgeClass(d.st)+'">'+d.st+'</span></td>'+
     '<td style="font-size:12px;color:#666">'+d.act+'</td></tr>';}).join('');
   document.getElementById('countInfo').textContent='显示 '+data.length+' 条（共 '+DATA.length+' 条活跃记录）';
@@ -150,19 +147,18 @@ function filterTable() {
 var sortCol=-1,sortAsc=true;
 function sortTable(col) {
   if(sortCol===col)sortAsc=!sortAsc;else{sortCol=col;sortAsc=true;}
-  var keys=['o','d','days','spend','roas','r1','r2','r3','s3','st'];
+  var keys=['o','d','days','spend','roas','r1','r2','r3','s3','ds','st'];
   DATA.sort(function(a,b){var va=a[keys[col]],vb=b[keys[col]];if(va===null)va=-999;if(vb===null)vb=-999;if(typeof va==='string')return sortAsc?va.localeCompare(vb):vb.localeCompare(va);return sortAsc?va-vb:vb-va;});
   filterTable();
 }
 function exportCSV() {
-  var h=['优化师','剧目','投放天数','累计花费','累计ROAS(%)','D1_ROAS(%)','D2_ROAS(%)','D3_ROAS(%)','3天累计花费','状态','建议操作'];
-  var rows=DATA.map(function(d){return [d.o,'"'+d.d+'"',d.days,d.spend,d.roas,d.r1||'',d.r2||'',d.r3||'',d.s3,d.st,d.act];});
+  var h=['优化师','剧目','投放天数','累计花费','累计ROAS(%)','D1_ROAS(%)','D2_ROAS(%)','D3_ROAS(%)','3天累计花费','最新花费','状态','建议操作'];
+  var rows=DATA.map(function(d){return [d.o,'"'+d.d+'"',d.days,d.spend,d.roas,d.r1||'',d.r2||'',d.r3||'',d.s3,d.ds||0,d.st,d.act];});
   var csv='\uFEFF'+[h].concat(rows).map(function(r){return r.join(',');}).join('\n');
   var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
   a.download='ReelShort跟投监控_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
 }
 initDashboard();
 </script>
-<script>window.addEventListener("load",function(){var ds=DATA.map(function(r){return r.date}).filter(Boolean).sort();var el=document.getElementById("subtitle");if(el){el.innerHTML="数据范围："+ds[0]+" ~ "+ds[ds.length-1]+" | 更新时间："+DATA_META.update;}});</script>
 </body>
 </html>
