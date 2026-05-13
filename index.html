@@ -99,10 +99,14 @@ function badgeClass(s) {
 }
 function fmtRoas(v) { return (v===null||v===undefined) ? '-' : v.toFixed(1)+'%'; }
 function initDashboard() {
+  // Dynamic date range
+  var allDates=DATA.map(function(r){return r.date}).filter(Boolean).sort();
+  var minD=allDates[0],maxD=allDates[allDates.length-1];
+  document.getElementById("subtitle").textContent="数据范围："+minD+" ~ "+maxD+" | 更新时间："+DATA_META.update;
+
   if (typeof DATA === 'undefined') { document.getElementById('filterNote').textContent='错误：无法加载数据文件 data.js'; return; }
   var c={};DATA.forEach(function(d){c[d.st]=(c[d.st]||0)+1;});
-  document.getElementById('subtitle').textContent='数据范围：2026-01-01 ~ 2026-05-11 | 更新时间：'+(DATA_META||{update:'未知'}).update;
-  document.getElementById('filterNote').innerHTML='仅显示近7天内有消耗的活跃组合（共'+DATA.length+'个），已自动过滤非活跃/休假人员。<br><b>状态说明：</b>需行动的状态仅针对最新日期仍有消耗的组合；已停投标记仅供参考。';
+  document.getElementById('subtitle').textContent='数据范围：加载中...<br><b>状态说明：</b>需行动的状态仅针对最新日期仍有消耗的组合；已停投标记仅供参考。';
   var h='<div class="section-label">需行动</div><div class="stats">';
   h+='<div class="stat-card c-stop"><div class="num">'+(c['止损']||0)+'</div><div class="label">止损（立即取消）</div></div>';
   h+='<div class="stat-card c-cancel"><div class="num">'+(c['取消']||0)+'</div><div class="label">取消跟投</div></div>';
