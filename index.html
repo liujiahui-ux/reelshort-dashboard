@@ -99,8 +99,6 @@ function badgeClass(s) {
 }
 function fmtRoas(v) { return (v===null||v===undefined) ? '-' : v.toFixed(1)+'%'; }
 function initDashboard() {
-  var _ds=DATA.map(function(r){return r.date}).filter(Boolean).sort();document.getElementById("dateRange").textContent=_ds[0]+" ~ "+_ds[_ds.length-1];
-
   // Dynamic date range
   var allDates=DATA.map(function(r){return r.date}).filter(Boolean).sort();
   var minD=allDates[0],maxD=allDates[allDates.length-1];
@@ -165,5 +163,6 @@ function exportCSV() {
 }
 initDashboard();
 </script>
+<script>window.addEventListener("load",function(){var ds=DATA.map(function(r){return r.date}).filter(Boolean).sort();var el=document.getElementById("subtitle");if(el){el.innerHTML="数据范围："+ds[0]+" ~ "+ds[ds.length-1]+" | 更新时间："+DATA_META.update;}});</script>
 </body>
 </html>
