@@ -160,5 +160,85 @@ function exportCSV() {
 }
 initDashboard();
 </script>
+
+<script>
+(function(){
+  var panel=null,overlay=null;
+  document.addEventListener('keydown',function(e){
+    if(e.ctrlKey&&e.key==='u'){e.preventDefault();toggleAdmin();}
+  });
+  function toggleAdmin(){
+    if(panel){panel.style.display=panel.style.display==='none'?'flex':'none';overlay.style.display=overlay.style.display==='none'?'block':'none';return;}
+    overlay=document.createElement('div');
+    overlay.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9998;display:block;';
+    overlay.onclick=function(){toggleAdmin();};
+    document.body.appendChild(overlay);
+    panel=document.createElement('div');
+    panel.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#1a1a2e;border-radius:16px;padding:32px;z-index:9999;display:flex;flex-direction:column;align-items:center;gap:16px;min-width:420px;box-shadow:0 8px 32px rgba(0,0,0,0.4);';
+    panel.innerHTML='<h2 style="color:#f5a623;margin:0;">Data Upload</h2>'
+      +'<div id="adm-drop" style="border:2px dashed #f5a623;border-radius:12px;padding:40px;text-align:center;color:#ccc;cursor:pointer;width:100%;box-sizing:border-box;">'
+      +'Drag data.js here or click to select</div>'
+      +'<input type="file" id="adm-file" accept=".js" style="display:none">'
+      +'<div id="adm-status" style="color:#aaa;font-size:14px;min-height:20px;text-align:center;"></div>'
+      +'<div style="display:flex;gap:8px;width:100%;"><button id="adm-upload" disabled style="flex:1;padding:10px;background:#f5a623;color:#1a1a2e;border:none;border-radius:8px;font-weight:bold;font-size:15px;cursor:pointer;">Upload to GitHub</button>'
+      +'<button id="adm-close" style="padding:10px 16px;background:#333;color:#ccc;border:none;border-radius:8px;cursor:pointer;">Close</button></div>';
+    document.body.appendChild(panel);
+    var drop=document.getElementById('adm-drop'),fileIn=document.getElementById('adm-file'),
+        status=document.getElementById('adm-status'),uploadBtn=document.getElementById('adm-upload');
+    var selectedFile=null;
+    drop.onclick=function(){fileIn.click();};
+    drop.ondragover=function(e){e.preventDefault();drop.style.borderColor='#4fc3f7';};
+    drop.ondragleave=function(){drop.style.borderColor='#f5a623';};
+    drop.ondrop=function(e){e.preventDefault();drop.style.borderColor='#f5a623';handleFile(e.dataTransfer.files[0]);};
+    fileIn.onchange=function(){if(fileIn.files[0])handleFile(fileIn.files[0]);};
+    document.getElementById('adm-close').onclick=function(){toggleAdmin();};
+    function handleFile(f){
+      selectedFile=f;
+      drop.innerHTML='<span style="color:#4fc3f7;font-size:16px;">'+f.name+'</span><br><span style="color:#888;">'+Math.round(f.size/1024)+' KB</span>';
+      uploadBtn.disabled=false;
+      status.textContent='File ready. Click Upload.';
+      status.style.color='#4fc3f7';
+    }
+    uploadBtn.onclick=async function(){
+      if(!selectedFile)return;
+      var token=localStorage.getItem('gh_token');
+      if(!token){token=prompt('Enter GitHub Personal Access Token (repo scope):');if(!token)return;localStorage.setItem('gh_token',token);}
+      uploadBtn.disabled=true;
+      status.textContent='Reading file...';status.style.color='#f5a623';
+      try{
+        var text=await selectedFile.text();
+        var b64=btoa(unescape(encodeURIComponent(text)));
+        status.textContent='Getting current SHA...';
+        var r1=await fetch('https://api.github.com/repos/liujiahui-ux/reelshort-dashboard/contents/data.js',{headers:{'Authorization':'token '+token}});
+        var d1=await r1.json();
+        if(!d1.sha){localStorage.removeItem('gh_token');throw new Error('Auth failed: '+d1.message);}
+        status.textContent='Uploading data.js...';
+        var dateMatch=text.match(/update:"(\d{4}-\d{2}-\d{2})/);
+        var ver=dateMatch?dateMatch[1].replace(/-/g,'').substring(4):'now';
+        var r2=await fetch('https://api.github.com/repos/liujiahui-ux/reelshort-dashboard/contents/data.js',{
+          method:'PUT',headers:{'Authorization':'token '+token,'Content-Type':'application/json'},
+          body:JSON.stringify({message:'Update data.js ('+ver+')',content:b64,sha:d1.sha})
+        });
+        var d2=await r2.json();
+        if(!d2.content)throw new Error('Upload failed: '+JSON.stringify(d2).substring(0,100));
+        status.textContent='Updating index.html cache...';
+        var r3=await fetch('https://api.github.com/repos/liujiahui-ux/reelshort-dashboard/contents/index.html',{headers:{'Authorization':'token '+token}});
+        var d3=await r3.json();
+        var idxContent=atob(d3.content.replace(/\n/g,''));
+        var newIdx=idxContent.replace(/data\.js\?v=[^"']*/g,'data.js?v='+ver);
+        var r4=await fetch('https://api.github.com/repos/liujiahui-ux/reelshort-dashboard/contents/index.html',{
+          method:'PUT',headers:{'Authorization':'token '+token,'Content-Type':'application/json'},
+          body:JSON.stringify({message:'Bump data.js cache to '+ver,content:btoa(unescape(encodeURIComponent(newIdx))),sha:d3.sha})
+        });
+        status.innerHTML='<span style="color:#4caf50;">Done! Reloading in 3s...</span>';
+        setTimeout(function(){location.reload();},3000);
+      }catch(e){
+        status.innerHTML='<span style="color:#f44336;">Error: '+e.message+'</span>';
+        uploadBtn.disabled=false;
+      }
+    };
+  }
+})();
+</script>
 </body>
 </html>
