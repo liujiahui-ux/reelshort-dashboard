@@ -84,7 +84,7 @@ tr:hover { background: #F8F9FA; }
   </div>
 </div>
 <div class="footer">ReelShort UA Team | 跟投管理政策 v1.0 | 评估粒度：优化师 × 剧目</div>
-<script src="data.js?v=0514c"></script>
+<script src="data.js?v=0514c0514"></script>
 <script>
 function roasClass(v) {
   if (v===null||v===undefined) return '';
@@ -225,7 +225,7 @@ initDashboard();
         var r3=await fetch('https://api.github.com/repos/liujiahui-ux/reelshort-dashboard/contents/index.html',{headers:{'Authorization':'token '+token}});
         var d3=await r3.json();
         var idxContent=atob(d3.content.replace(/\n/g,''));
-        var newIdx=idxContent.replace(/data\.js\?v=[^"']*/g,'data.js?v=0514c'+ver);
+        var newIdx=idxContent.replace(/data\.js\?v=[^"']*/g,'data.js?v=0514c0514'+ver);
         var r4=await fetch('https://api.github.com/repos/liujiahui-ux/reelshort-dashboard/contents/index.html',{
           method:'PUT',headers:{'Authorization':'token '+token,'Content-Type':'application/json'},
           body:JSON.stringify({message:'Bump data.js cache to '+ver,content:btoa(newIdx),sha:d3.sha})
