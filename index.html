@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ReelShort 跟投监控看板</title>
+<title>ReelShort è·æçæ§çæ¿</title>
 <style>
 :root { --navy: #1B3A5C; --blue: #2E5B8A; --red: #E74C3C; --black: #333; --yellow: #F39C12; --green: #27AE60; --gray: #95A5A6; --stopped: #8E99A4; }
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -49,42 +49,42 @@ tr:hover { background: #F8F9FA; }
 </head>
 <body>
 <div class="header">
-  <h1>ReelShort 英语原创剧目 - 跟投监控看板</h1>
-  <div class="sub" id="subtitle">加载中...</div>
+  <h1>ReelShort è±è¯­ååå§ç® - è·æçæ§çæ¿</h1>
+  <div class="sub" id="subtitle">å è½½ä¸­...</div>
 </div>
 <div class="accent"></div>
 <div class="container">
-  <div class="filter-note" id="filterNote">加载数据中...</div>
+  <div class="filter-note" id="filterNote">å è½½æ°æ®ä¸­...</div>
   <div id="statsArea"></div>
   <div class="controls" style="margin-top:16px;">
-    <input type="text" id="search" placeholder="搜索优化师或剧目..." oninput="filterTable()">
+    <input type="text" id="search" placeholder="æç´¢ä¼åå¸æå§ç®..." oninput="filterTable()">
     <select id="statusFilter" onchange="filterTable()">
-      <option value="">全部状态</option>
-      <option value="需行动">需行动（止损+取消+降量）</option>
-      <option value="止损">止损</option><option value="取消">取消</option><option value="降量">降量</option>
-      <option value="已停投">已停投（全部）</option>
-      <option value="已停投(止损)">已停投(止损)</option><option value="已停投(取消)">已停投(取消)</option><option value="已停投(降量)">已停投(降量)</option>
-      <option value="正常">正常</option><option value="数据不足">数据不足</option>
+      <option value="">å¨é¨ç¶æ</option>
+      <option value="éè¡å¨">éè¡å¨ï¼æ­¢æ+åæ¶+ééï¼</option>
+      <option value="æ­¢æ">æ­¢æ</option><option value="åæ¶">åæ¶</option><option value="éé">éé</option>
+      <option value="å·²åæ">å·²åæï¼å¨é¨ï¼</option>
+      <option value="å·²åæ(æ­¢æ)">å·²åæ(æ­¢æ)</option><option value="å·²åæ(åæ¶)">å·²åæ(åæ¶)</option><option value="å·²åæ(éé)">å·²åæ(éé)</option>
+      <option value="æ­£å¸¸">æ­£å¸¸</option><option value="æ°æ®ä¸è¶³">æ°æ®ä¸è¶³</option>
     </select>
     <select id="optimizerFilter" onchange="filterTable()"></select>
-    <button class="btn-export" onclick="exportCSV()">导出CSV</button>
+    <button class="btn-export" onclick="exportCSV()">å¯¼åºCSV</button>
   </div>
   <div class="count-info" id="countInfo"></div>
   <div class="table-wrap">
     <table id="mainTable">
       <thead><tr>
-        <th onclick="sortTable(0)">优化师 &#8597;</th><th onclick="sortTable(1)">剧目 &#8597;</th>
-        <th onclick="sortTable(2)">投放天数 &#8597;</th><th onclick="sortTable(3)">累计花费($) &#8597;</th>
-        <th onclick="sortTable(4)">累计ROAS &#8597;</th><th onclick="sortTable(5)">D-1 ROAS &#8597;</th>
+        <th onclick="sortTable(0)">ä¼åå¸ &#8597;</th><th onclick="sortTable(1)">å§ç® &#8597;</th>
+        <th onclick="sortTable(2)">ææ¾å¤©æ° &#8597;</th><th onclick="sortTable(3)">ç´¯è®¡è±è´¹($) &#8597;</th>
+        <th onclick="sortTable(4)">ç´¯è®¡ROAS &#8597;</th><th onclick="sortTable(5)">D-1 ROAS &#8597;</th>
         <th onclick="sortTable(6)">D-2 ROAS &#8597;</th><th onclick="sortTable(7)">D-3 ROAS &#8597;</th>
-        <th onclick="sortTable(8)">3天花费($) &#8597;</th><th onclick="sortTable(9)">最新花费($) &#8597;</th><th onclick="sortTable(10)">状态 &#8597;</th><th>建议操作</th>
+        <th onclick="sortTable(8)">3å¤©è±è´¹($) &#8597;</th><th onclick="sortTable(9)">ææ°è±è´¹($) &#8597;</th><th onclick="sortTable(10)">ç¶æ &#8597;</th><th>å»ºè®®æä½</th>
       </tr></thead>
       <tbody id="tableBody"></tbody>
     </table>
   </div>
 </div>
-<div class="footer">ReelShort UA Team | 跟投管理政策 v1.0 | 评估粒度：优化师 × 剧目</div>
-<script src="data.js?v=0514c051405140514"></script>
+<div class="footer">ReelShort UA Team | è·æç®¡çæ¿ç­ v1.0 | è¯ä¼°ç²åº¦ï¼ä¼åå¸ Ã å§ç®</div>
+<script src="data.js?v=0515a"></script>
 <script>
 function roasClass(v) {
   if (v===null||v===undefined) return '';
@@ -92,31 +92,31 @@ function roasClass(v) {
   if (v<27) return 'roas-warn'; if (v>=30) return 'roas-ok'; return '';
 }
 function badgeClass(s) {
-  if (s==='止损') return 'badge-stop'; if (s==='取消') return 'badge-cancel';
-  if (s==='降量') return 'badge-reduce'; if (s==='正常') return 'badge-normal';
-  if (s==='数据不足') return 'badge-insuf';
-  if (s.startsWith('已停投')) return 'badge-stopped'; return 'badge-normal';
+  if (s==='æ­¢æ') return 'badge-stop'; if (s==='åæ¶') return 'badge-cancel';
+  if (s==='éé') return 'badge-reduce'; if (s==='æ­£å¸¸') return 'badge-normal';
+  if (s==='æ°æ®ä¸è¶³') return 'badge-insuf';
+  if (s.startsWith('å·²åæ')) return 'badge-stopped'; return 'badge-normal';
 }
 function fmtRoas(v) { return (v===null||v===undefined) ? '-' : v.toFixed(1)+'%'; }
 function initDashboard() {
-  if (typeof DATA === 'undefined') { document.getElementById('filterNote').textContent='错误：无法加载数据文件 data.js'; return; }
+  if (typeof DATA === 'undefined') { document.getElementById('filterNote').textContent='éè¯¯ï¼æ æ³å è½½æ°æ®æä»¶ data.js'; return; }
   var c={};DATA.forEach(function(d){c[d.st]=(c[d.st]||0)+1;});
-  var _ds=DATA.map(function(d){return d.date}).filter(Boolean).sort();document.getElementById('subtitle').textContent='数据范围：'+_ds[0]+' ~ '+_ds[_ds.length-1]+' | 更新时间：'+(DATA_META||{update:'未知'}).update;
-  document.getElementById('filterNote').innerHTML='仅显示近7天内有消耗的活跃组合（共'+DATA.length+'个），已自动过滤非活跃/休假人员。<br><b>状态说明：</b>需行动的状态仅针对最新日期仍有消耗的组合；已停投标记仅供参考。';
-  var h='<div class="section-label">需行动</div><div class="stats">';
-  h+='<div class="stat-card c-stop"><div class="num">'+(c['止损']||0)+'</div><div class="label">止损（立即取消）</div></div>';
-  h+='<div class="stat-card c-cancel"><div class="num">'+(c['取消']||0)+'</div><div class="label">取消跟投</div></div>';
-  h+='<div class="stat-card c-reduce"><div class="num">'+(c['降量']||0)+'</div><div class="label">预警降量</div></div></div>';
-  h+='<div class="section-label" style="margin-top:8px;">已停投（仅供参考）</div><div class="stats">';
-  h+='<div class="stat-card c-stopped"><div class="num">'+(c['已停投(止损)']||0)+'</div><div class="label">已停投(止损)</div></div>';
-  h+='<div class="stat-card c-stopped"><div class="num">'+(c['已停投(取消)']||0)+'</div><div class="label">已停投(取消)</div></div>';
-  h+='<div class="stat-card c-stopped"><div class="num">'+(c['已停投(降量)']||0)+'</div><div class="label">已停投(降量)</div></div></div>';
-  h+='<div class="section-label" style="margin-top:8px;">其他</div><div class="stats">';
-  h+='<div class="stat-card c-normal"><div class="num">'+(c['正常']||0)+'</div><div class="label">正常</div></div>';
-  h+='<div class="stat-card c-insuf"><div class="num">'+(c['数据不足']||0)+'</div><div class="label">数据不足</div></div></div>';
+  var _ds=DATA.map(function(d){return d.date}).filter(Boolean).sort();document.getElementById('subtitle').textContent='æ°æ®èå´ï¼'+_ds[0]+' ~ '+_ds[_ds.length-1]+' | æ´æ°æ¶é´ï¼'+(DATA_META||{update:'æªç¥'}).update;
+  document.getElementById('filterNote').innerHTML='ä»æ¾ç¤ºè¿7å¤©åææ¶èçæ´»è·ç»åï¼å±'+DATA.length+'ä¸ªï¼ï¼å·²èªå¨è¿æ»¤éæ´»è·/ä¼åäººåã<br><b>ç¶æè¯´æï¼</b>éè¡å¨çç¶æä»éå¯¹ææ°æ¥æä»ææ¶èçç»åï¼å·²åææ è®°ä»ä¾åèã';
+  var h='<div class="section-label">éè¡å¨</div><div class="stats">';
+  h+='<div class="stat-card c-stop"><div class="num">'+(c['æ­¢æ']||0)+'</div><div class="label">æ­¢æï¼ç«å³åæ¶ï¼</div></div>';
+  h+='<div class="stat-card c-cancel"><div class="num">'+(c['åæ¶']||0)+'</div><div class="label">åæ¶è·æ</div></div>';
+  h+='<div class="stat-card c-reduce"><div class="num">'+(c['éé']||0)+'</div><div class="label">é¢è­¦éé</div></div></div>';
+  h+='<div class="section-label" style="margin-top:8px;">å·²åæï¼ä»ä¾åèï¼</div><div class="stats">';
+  h+='<div class="stat-card c-stopped"><div class="num">'+(c['å·²åæ(æ­¢æ)']||0)+'</div><div class="label">å·²åæ(æ­¢æ)</div></div>';
+  h+='<div class="stat-card c-stopped"><div class="num">'+(c['å·²åæ(åæ¶)']||0)+'</div><div class="label">å·²åæ(åæ¶)</div></div>';
+  h+='<div class="stat-card c-stopped"><div class="num">'+(c['å·²åæ(éé)']||0)+'</div><div class="label">å·²åæ(éé)</div></div></div>';
+  h+='<div class="section-label" style="margin-top:8px;">å¶ä»</div><div class="stats">';
+  h+='<div class="stat-card c-normal"><div class="num">'+(c['æ­£å¸¸']||0)+'</div><div class="label">æ­£å¸¸</div></div>';
+  h+='<div class="stat-card c-insuf"><div class="num">'+(c['æ°æ®ä¸è¶³']||0)+'</div><div class="label">æ°æ®ä¸è¶³</div></div></div>';
   document.getElementById('statsArea').innerHTML=h;
   var opts=[...new Set(DATA.map(function(d){return d.o;}))].sort();
-  document.getElementById('optimizerFilter').innerHTML='<option value="">全部优化师</option>'+opts.map(function(o){return '<option value="'+o+'">'+o+'</option>';}).join('');
+  document.getElementById('optimizerFilter').innerHTML='<option value="">å¨é¨ä¼åå¸</option>'+opts.map(function(o){return '<option value="'+o+'">'+o+'</option>';}).join('');
   renderTable(DATA);
 }
 function renderTable(data) {
@@ -132,7 +132,7 @@ function renderTable(data) {
     '<td style="text-align:right">'+(d.ds||0).toLocaleString()+'</td>'+
     '<td><span class="badge '+badgeClass(d.st)+'">'+d.st+'</span></td>'+
     '<td style="font-size:12px;color:#666">'+d.act+'</td></tr>';}).join('');
-  document.getElementById('countInfo').textContent='显示 '+data.length+' 条（共 '+DATA.length+' 条活跃记录）';
+  document.getElementById('countInfo').textContent='æ¾ç¤º '+data.length+' æ¡ï¼å± '+DATA.length+' æ¡æ´»è·è®°å½ï¼';
 }
 function filterTable() {
   var s=document.getElementById('search').value.toLowerCase();
@@ -140,7 +140,7 @@ function filterTable() {
   var op=document.getElementById('optimizerFilter').value;
   renderTable(DATA.filter(function(d){
     if(s&&d.o.toLowerCase().indexOf(s)<0&&d.d.toLowerCase().indexOf(s)<0) return false;
-    if(st){if(st==='需行动'){if(['止损','取消','降量'].indexOf(d.st)<0)return false;}else if(st==='已停投'){if(d.st.indexOf('已停投')!==0)return false;}else{if(d.st!==st)return false;}}
+    if(st){if(st==='éè¡å¨'){if(['æ­¢æ','åæ¶','éé'].indexOf(d.st)<0)return false;}else if(st==='å·²åæ'){if(d.st.indexOf('å·²åæ')!==0)return false;}else{if(d.st!==st)return false;}}
     if(op&&d.o!==op)return false; return true;
   }));
 }
@@ -152,11 +152,11 @@ function sortTable(col) {
   filterTable();
 }
 function exportCSV() {
-  var h=['优化师','剧目','投放天数','累计花费','累计ROAS(%)','D1_ROAS(%)','D2_ROAS(%)','D3_ROAS(%)','3天累计花费','最新花费','状态','建议操作'];
+  var h=['ä¼åå¸','å§ç®','ææ¾å¤©æ°','ç´¯è®¡è±è´¹','ç´¯è®¡ROAS(%)','D1_ROAS(%)','D2_ROAS(%)','D3_ROAS(%)','3å¤©ç´¯è®¡è±è´¹','ææ°è±è´¹','ç¶æ','å»ºè®®æä½'];
   var rows=DATA.map(function(d){return [d.o,'"'+d.d+'"',d.days,d.spend,d.roas,d.r1||'',d.r2||'',d.r3||'',d.s3,d.ds||0,d.st,d.act];});
   var csv='\uFEFF'+[h].concat(rows).map(function(r){return r.join(',');}).join('\n');
   var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
-  a.download='ReelShort跟投监控_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
+  a.download='ReelShortè·æçæ§_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
 }
 initDashboard();
 </script>
@@ -225,7 +225,7 @@ initDashboard();
         var r3=await fetch('https://api.github.com/repos/liujiahui-ux/reelshort-dashboard/contents/index.html',{headers:{'Authorization':'token '+token}});
         var d3=await r3.json();
         var idxContent=atob(d3.content.replace(/\n/g,''));
-        var newIdx=idxContent.replace(/data\.js\?v=[^"']*/g,'data.js?v=0514c051405140514'+ver);
+        var newIdx=idxContent.replace(/data\.js\?v=[^"']*/g,'data.js?v='+ver);
         var r4=await fetch('https://api.github.com/repos/liujiahui-ux/reelshort-dashboard/contents/index.html',{
           method:'PUT',headers:{'Authorization':'token '+token,'Content-Type':'application/json'},
           body:JSON.stringify({message:'Bump data.js cache to '+ver,content:btoa(newIdx),sha:d3.sha})
