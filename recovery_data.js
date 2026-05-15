@@ -7,6 +7,10 @@ var STOP_RECORDS=[
 ["zhub","Mic Drop Diva","2026-05-12"],
 ["FEE","Runaway Single Mom, Safe in His Arms","2026-05-12"],
 ["LDH","Married The Mafioso I Saved","2026-05-12"],
+["Cecilia","My Secret Lover Is His Brother","2026-05-13"],
+["Grizz","Runaway Single Mom, Safe in His Arms","2026-05-13"],
+["cody","The Reckoning Takes Flight","2026-05-13"],
+["Dora","Runaway Single Mom, Safe in His Arms","2026-05-13"],
 ["PY","Rejected Luna Is the Alpha Queen","2026-05-14"],
 ["wgh","Rejected Luna Is the Alpha Queen","2026-05-14"]
 ];
