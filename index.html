@@ -165,7 +165,7 @@ initDashboard();
 (function(){
   var panel=null,overlay=null;
   document.addEventListener('keydown',function(e){
-    if(e.ctrlKey&&e.key==='u'){e.preventDefault();toggleAdmin();}
+    if(e.ctrlKey&&e.shiftKey&&e.key==='U'){e.preventDefault();toggleAdmin();}
   });
   function toggleAdmin(){
     if(panel){panel.style.display=panel.style.display==='none'?'flex':'none';overlay.style.display=overlay.style.display==='none'?'block':'none';return;}
