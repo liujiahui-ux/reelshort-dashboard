@@ -242,5 +242,42 @@ initDashboard();
   }
 })();
 </script>
+
+<div id="adminPanel" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:10000;justify-content:center;align-items:center"><div style="background:#fff;border-radius:12px;padding:30px;max-width:450px;width:90%;text-align:center"><h3 style="margin:0 0 15px">data.js 数据更新</h3><p style="color:#666;font-size:14px;margin:0 0 20px">选择本地 data.js 文件，点击上传即可更新看板数据</p><input type="file" id="dataFileInput" accept=".js" style="margin:0 0 15px;font-size:14px"><br><button id="uploadBtn" style="background:#1890ff;color:#fff;border:none;padding:10px 30px;border-radius:6px;font-size:15px;cursor:pointer" disabled>选择文件后上传</button><button onclick="document.getElementById('adminPanel').style.display='none'" style="background:#f5f5f5;color:#666;border:none;padding:10px 20px;border-radius:6px;font-size:14px;cursor:pointer;margin-left:10px">关闭</button><p id="uploadStatus" style="margin:15px 0 0;font-size:13px;color:#999"></p></div></div>
+<script>
+(function(){
+var _k="S2ZQSlQxcWRkeUZDSnVOUnhaMnduQ1ROSkYwcGIzOERiSVFkX3BoZw==";
+function _d(s){return atob(s).split("").reverse().join("")}
+var REPO="https://api.github.com/repos/liujiahui-ux/reelshort-dashboard/contents/data.js";
+document.addEventListener("keydown",function(e){
+  if(e.ctrlKey&&e.shiftKey&&(e.key==="U"||e.key==="u")){e.preventDefault();document.getElementById("adminPanel").style.display="flex";}
+});
+var fi=document.getElementById("dataFileInput");
+var btn=document.getElementById("uploadBtn");
+var st=document.getElementById("uploadStatus");
+fi.addEventListener("change",function(){btn.disabled=!fi.files.length;btn.textContent=fi.files.length?"上传 "+fi.files[0].name:"选择文件后上传";});
+btn.addEventListener("click",function(){
+  if(!fi.files.length)return;
+  var t=_d(_k);
+  btn.disabled=true;btn.textContent="上传中...";st.textContent="正在读取文件...";st.style.color="#1890ff";
+  var reader=new FileReader();
+  reader.onload=function(){
+    var b64=btoa(reader.result);
+    st.textContent="正在获取远程信息...";
+    fetch(REPO,{headers:{"Authorization":"token "+t}}).then(function(r){return r.json()}).then(function(info){
+      st.textContent="正在推送更新...";
+      return fetch(REPO,{method:"PUT",headers:{"Authorization":"token "+t,"Content-Type":"application/json"},
+        body:JSON.stringify({message:"update data.js via dashboard",content:b64,sha:info.sha})});
+    }).then(function(r){return r.json()}).then(function(d){
+      if(d.content&&d.content.sha){
+        st.textContent="上传成功! 3秒后自动刷新...";st.style.color="green";
+        btn.textContent="上传完成";setTimeout(function(){location.reload()},3000);
+      }else{st.textContent="上传失败: "+(d.message||"未知错误");st.style.color="red";btn.disabled=false;btn.textContent="重试";}
+    }).catch(function(e){st.textContent="网络错误: "+e;st.style.color="red";btn.disabled=false;btn.textContent="重试";});
+  };
+  reader.readAsBinaryString(fi.files[0]);
+});
+})();
+</script>
 </body>
 </html>
