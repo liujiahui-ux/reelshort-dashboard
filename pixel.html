@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ReelShort Pixel 数据看板</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#f5f6fa;color:#1a1a2e;font-size:13px}
+.header{background:#fff;padding:16px 24px;border-bottom:1px solid #e2e5ed;display:flex;align-items:center;justify-content:space-between}
+.header h1{font-size:18px;color:#1a1a2e;font-weight:600}
+.header .meta{color:#8c8fa3;font-size:12px}
+.filters{background:#fff;padding:12px 24px;border-bottom:1px solid #e2e5ed;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.filter-group{display:flex;align-items:center;gap:6px}
+.filter-group label{color:#6b7194;font-size:12px;white-space:nowrap}
+.filter-group select{background:#fff;color:#1a1a2e;border:1px solid #d1d5e4;border-radius:6px;padding:5px 8px;font-size:12px;cursor:pointer;min-width:120px}
+.filter-group select:focus{outline:none;border-color:#5b8def}
+.search-box{background:#fff;color:#1a1a2e;border:1px solid #d1d5e4;border-radius:6px;padding:5px 10px;font-size:12px;width:200px}
+.search-box:focus{outline:none;border-color:#5b8def}
+.toggle-group{display:flex;gap:4px}
+.toggle-btn{background:#f0f1f5;color:#6b7194;border:1px solid #d1d5e4;border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer;transition:all .2s}
+.toggle-btn.active{background:#5b8def;color:#fff;border-color:#5b8def}
+.stats-bar{background:#fff;padding:8px 24px;border-bottom:1px solid #e2e5ed;display:flex;gap:24px}
+.stat-item{display:flex;align-items:center;gap:6px}
+.stat-label{color:#8c8fa3;font-size:11px}
+.stat-value{color:#1a1a2e;font-size:14px;font-weight:600}
+.table-wrap{overflow-x:auto;padding:0 12px 12px}
+table{width:100%;border-collapse:collapse;margin-top:8px}
+thead th{background:#f8f9fc;color:#6b7194;font-size:11px;font-weight:500;padding:8px 10px;text-align:right;position:sticky;top:0;z-index:2;cursor:pointer;white-space:nowrap;border-bottom:2px solid #e2e5ed;user-select:none}
+thead th:hover{color:#1a1a2e;background:#eef0f6}
+thead th.sort-asc::after{content:" ▲";color:#5b8def}
+thead th.sort-desc::after{content:" ▼";color:#5b8def}
+thead th:nth-child(-n+3){text-align:left}
+tbody tr{border-bottom:1px solid #f0f1f5;transition:background .15s}
+tbody tr:hover{background:#f0f4ff}
+tbody tr.subtotal-row{background:#f8f9fc;font-weight:600;border-top:2px solid #e2e5ed}
+tbody td{padding:7px 10px;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+tbody td:nth-child(-n+3){text-align:left}
+.lang-tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500}
+.plat-tag{display:inline-block;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600;text-transform:uppercase}
+.plat-fb{background:#e7f0ff;color:#1877f2}
+.plat-tt{background:#fff0f3;color:#e1234b}
+.roas-high{color:#16a34a}
+.roas-mid{color:#d97706}
+.roas-low{color:#dc2626}
+.pixel-name{font-family:"SF Mono",Consolas,monospace;font-size:11px;color:#4a5078;max-width:320px;overflow:hidden;text-overflow:ellipsis}
+.no-data{color:#8c8fa3;text-align:center;padding:40px;font-size:14px}
+.footer{text-align:center;padding:16px;color:#8c8fa3;font-size:11px;border-top:1px solid #e2e5ed}
+
+/* Color coding for languages */
+.lang-en{background:#e7f0ff;color:#2563eb}
+.lang-zh{background:#fee2e2;color:#dc2626}
+.lang-ja{background:#fff7ed;color:#c2410c}
+.lang-ko{background:#f3e8ff;color:#7c3aed}
+.lang-es{background:#fef9c3;color:#a16207}
+.lang-pt{background:#d1fae5;color:#059669}
+.lang-id{background:#cffafe;color:#0891b2}
+.lang-th{background:#fce7f3;color:#be185d}
+.lang-de{background:#ecfccb;color:#4d7c0f}
+.lang-fr{background:#e0e7ff;color:#4338ca}
+.lang-ar{background:#fae8ff;color:#a21caf}
+.lang-vi{background:#ccfbf1;color:#0d9488}
+.lang-tr{background:#ffe4e6;color:#be123c}
+.lang-ru{background:#dbeafe;color:#1d4ed8}
+.lang-default{background:#f4f4f5;color:#71717a}
+
+/* Summary cards */
+.summary-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;padding:12px 24px}
+.summary-card{background:#fff;border-radius:8px;padding:12px 16px;border:1px solid #e2e5ed}
+.summary-card .card-label{color:#8c8fa3;font-size:11px;margin-bottom:4px}
+.summary-card .card-value{color:#1a1a2e;font-size:20px;font-weight:700}
+.summary-card .card-sub{color:#8c8fa3;font-size:11px;margin-top:2px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>Pixel 数据看板</h1>
+    <div class="meta" id="metaInfo">加载中...</div>
+  </div>
+  <div style="display:flex;gap:12px;align-items:center">
+    <a href="index.html" style="color:#5b8def;font-size:12px;text-decoration:none">← 跟投看板</a>
+    <a href="recovery.html" style="color:#5b8def;font-size:12px;text-decoration:none">恢复投放</a>
+  </div>
+</div>
+
+<div class="summary-cards" id="summaryCards"></div>
+
+<div class="filters">
+  <div class="filter-group">
+    <label>语言</label>
+    <select id="filterLang"><option value="">全部</option></select>
+  </div>
+  <div class="filter-group">
+    <label>平台</label>
+    <select id="filterPlat">
+      <option value="">全部</option>
+      <option value="fb">Facebook</option>
+      <option value="tt">TikTok</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label>Pixel</label>
+    <select id="filterPixel"><option value="">全部</option></select>
+  </div>
+  <div class="filter-group">
+    <label>搜索</label>
+    <input type="text" class="search-box" id="searchBox" placeholder="搜索 pixel 名称...">
+  </div>
+  <div class="filter-group">
+    <label>显示</label>
+    <div class="toggle-group">
+      <button class="toggle-btn active" data-show="pixel" onclick="toggleView(this)">Pixel 明细</button>
+      <button class="toggle-btn" data-show="subtotal" onclick="toggleView(this)">语言小计</button>
+    </div>
+  </div>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr id="tableHead"></tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+  <div class="no-data" id="noData" style="display:none">没有匹配的数据</div>
+</div>
+
+<div class="footer">
+  ReelShort UA · Pixel 数据看板 · 数据来源：投放分析报表
+</div>
+
+<script>document.write('<scr'+'ipt src="pixel_data.js?v='+Date.now()+'"></scr'+'ipt>');</script>
+<script>
+// ===== Config =====
+var COLS = [
+  {key:'lang', label:'语言', align:'left', type:'text'},
+  {key:'plat', label:'平台', align:'left', type:'platform'},
+  {key:'pixel', label:'Pixel 名称', align:'left', type:'pixel'},
+  {key:'spend', label:'花费($)', align:'right', type:'money'},
+  {key:'d0_roas', label:'D0 ROAS', align:'right', type:'percent'},
+  {key:'d0_revenue', label:'D0 Revenue($)', align:'right', type:'money'},
+  {key:'cpm', label:'CPM($)', align:'right', type:'decimal'},
+  {key:'activations', label:'激活数', align:'right', type:'int'},
+  {key:'paying_users', label:'付费数', align:'right', type:'int'},
+  {key:'cpi', label:'CPI($)', align:'right', type:'decimal'},
+  {key:'payment_rate', label:'付费率', align:'right', type:'percent'},
+  {key:'arppu', label:'ARPPU($)', align:'right', type:'decimal'},
+  {key:'new_ratio', label:'新用户占比', align:'right', type:'percent'},
+  {key:'old_ratio', label:'老用户占比', align:'right', type:'percent'}
+];
+
+// ===== Data Processing =====
+var DATA = [];
+var currentSort = {col: 'spend', dir: 'desc'};
+var currentView = 'pixel';
+
+function init() {
+  if (typeof PIXEL_RAW === 'undefined') {
+    document.getElementById('noData').style.display = 'block';
+    document.getElementById('noData').textContent = '数据文件加载失败，请检查 pixel_data.js';
+    return;
+  }
+
+  // Parse raw data
+  DATA = PIXEL_RAW.map(function(r) {
+    return {
+      lang: r[0],
+      plat: r[1],
+      pixel: r[2],
+      spend: r[3],
+      d0_roas: r[4],
+      d0_revenue: r[5],
+      cpm: r[6],
+      activations: r[7],
+      paying_users: r[8],
+      cpi: r[9],
+      payment_rate: r[10],
+      arppu: r[11],
+      new_ratio: r[12],
+      old_ratio: r[13],
+      is_subtotal: r[2] === '_subtotal'
+    };
+  });
+
+  // Meta info
+  if (typeof PIXEL_META !== 'undefined') {
+    document.getElementById('metaInfo').textContent = '更新时间: ' + PIXEL_META.update + ' · ' + (PIXEL_META.source || '');
+  }
+
+  // Populate filters
+  populateFilters();
+
+  // Build table header
+  buildHeader();
+
+  // Render summary
+  renderSummary();
+
+  // Render table
+  renderTable();
+}
+
+function populateFilters() {
+  var langs = {};
+  var pixels = {};
+  DATA.forEach(function(d) {
+    if (d.lang && d.lang !== '-') langs[d.lang] = 1;
+    if (!d.is_subtotal && d.pixel) pixels[d.pixel] = 1;
+  });
+
+  var langSel = document.getElementById('filterLang');
+  Object.keys(langs).sort().forEach(function(l) {
+    var o = document.createElement('option');
+    o.value = l; o.textContent = l;
+    langSel.appendChild(o);
+  });
+
+  var pixelSel = document.getElementById('filterPixel');
+  Object.keys(pixels).sort().forEach(function(p) {
+    var o = document.createElement('option');
+    o.value = p; o.textContent = p;
+    pixelSel.appendChild(o);
+  });
+
+  // Events
+  langSel.onchange = pixelSel.onchange = document.getElementById('filterPlat').onchange = function(){ renderTable(); renderSummary(); };
+  document.getElementById('searchBox').oninput = function(){ renderTable(); };
+}
+
+function buildHeader() {
+  var tr = document.getElementById('tableHead');
+  tr.innerHTML = '';
+  COLS.forEach(function(c) {
+    var th = document.createElement('th');
+    th.textContent = c.label;
+    th.dataset.col = c.key;
+    if (c.align === 'left') th.style.textAlign = 'left';
+    if (currentSort.col === c.key) th.className = 'sort-' + currentSort.dir;
+    th.onclick = function() { sortBy(c.key); };
+    tr.appendChild(th);
+  });
+}
+
+function getFilteredData() {
+  var lang = document.getElementById('filterLang').value;
+  var plat = document.getElementById('filterPlat').value;
+  var pixel = document.getElementById('filterPixel').value;
+  var search = document.getElementById('searchBox').value.toLowerCase();
+
+  return DATA.filter(function(d) {
+    if (currentView === 'pixel' && d.is_subtotal) return false;
+    if (currentView === 'subtotal' && !d.is_subtotal) return false;
+    if (lang && d.lang !== lang) return false;
+    if (plat && d.plat !== plat) return false;
+    if (pixel && d.pixel !== pixel) return false;
+    if (search && d.pixel && d.pixel.toLowerCase().indexOf(search) === -1) return false;
+    return true;
+  });
+}
+
+function renderSummary() {
+  var filtered = getFilteredData();
+  var totalSpend = 0, totalRevenue = 0, totalActivations = 0, totalPaying = 0;
+  var count = 0;
+
+  filtered.forEach(function(d) {
+    totalSpend += (d.spend || 0);
+    totalRevenue += (d.d0_revenue || 0);
+    totalActivations += (d.activations || 0);
+    totalPaying += (d.paying_users || 0);
+    count++;
+  });
+
+  var avgRoas = totalSpend > 0 ? (totalRevenue / totalSpend) : 0;
+  var avgPayRate = totalActivations > 0 ? (totalPaying / totalActivations) : 0;
+
+  var cards = [
+    {label: 'Pixel 数量', value: count, sub: '当前筛选'},
+    {label: '总花费', value: '$' + formatNum(totalSpend), sub: ''},
+    {label: '总 D0 Revenue', value: '$' + formatNum(totalRevenue), sub: ''},
+    {label: '加权 D0 ROAS', value: (avgRoas * 100).toFixed(2) + '%', sub: '按花费加权'},
+    {label: '总激活数', value: formatInt(totalActivations), sub: ''},
+    {label: '总付费数', value: formatInt(totalPaying), sub: '加权付费率 ' + (avgPayRate * 100).toFixed(2) + '%'}
+  ];
+
+  var html = '';
+  cards.forEach(function(c) {
+    html += '<div class="summary-card"><div class="card-label">' + c.label + '</div><div class="card-value">' + c.value + '</div><div class="card-sub">' + c.sub + '</div></div>';
+  });
+  document.getElementById('summaryCards').innerHTML = html;
+}
+
+function renderTable() {
+  var filtered = getFilteredData();
+
+  // Sort
+  filtered.sort(function(a, b) {
+    var va = a[currentSort.col], vb = b[currentSort.col];
+    if (va == null) va = -Infinity;
+    if (vb == null) vb = -Infinity;
+    if (typeof va === 'string') {
+      return currentSort.dir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+    }
+    return currentSort.dir === 'asc' ? va - vb : vb - va;
+  });
+
+  var tbody = document.getElementById('tableBody');
+  tbody.innerHTML = '';
+
+  if (filtered.length === 0) {
+    document.getElementById('noData').style.display = 'block';
+    return;
+  }
+  document.getElementById('noData').style.display = 'none';
+
+  filtered.forEach(function(d) {
+    var tr = document.createElement('tr');
+    if (d.is_subtotal) tr.className = 'subtotal-row';
+
+    COLS.forEach(function(c) {
+      var td = document.createElement('td');
+      var v = d[c.key];
+
+      if (c.type === 'platform') {
+        if (v === 'fb') td.innerHTML = '<span class="plat-tag plat-fb">FB</span>';
+        else if (v === 'tt') td.innerHTML = '<span class="plat-tag plat-tt">TT</span>';
+        else td.textContent = v || '-';
+      } else if (c.type === 'pixel') {
+        td.className = 'pixel-name';
+        td.textContent = d.is_subtotal ? '(小计 - 未分配pixel)' : (v || '-');
+        td.title = v || '';
+      } else if (c.key === 'lang') {
+        td.innerHTML = '<span class="lang-tag ' + getLangClass(v) + '">' + (v || '-') + '</span>';
+      } else if (c.type === 'percent') {
+        if (v != null) {
+          var pct = (v * 100).toFixed(2) + '%';
+          if (c.key === 'd0_roas') {
+            var cls = v >= 0.30 ? 'roas-high' : (v >= 0.20 ? 'roas-mid' : 'roas-low');
+            td.innerHTML = '<span class="' + cls + '">' + pct + '</span>';
+          } else {
+            td.textContent = pct;
+          }
+        } else {
+          td.textContent = '-';
+          td.style.color = '#b0b3c6';
+        }
+      } else if (c.type === 'money') {
+        td.textContent = v != null ? '$' + formatNum(v) : '-';
+        if (v == null) td.style.color = '#b0b3c6';
+      } else if (c.type === 'int') {
+        td.textContent = v != null ? formatInt(v) : '-';
+        if (v == null) td.style.color = '#b0b3c6';
+      } else if (c.type === 'decimal') {
+        td.textContent = v != null ? v.toFixed(2) : '-';
+        if (v == null) td.style.color = '#b0b3c6';
+      } else {
+        td.textContent = v || '-';
+      }
+
+      if (c.align === 'left') td.style.textAlign = 'left';
+      tr.appendChild(td);
+    });
+
+    tbody.appendChild(tr);
+  });
+}
+
+function sortBy(col) {
+  if (currentSort.col === col) {
+    currentSort.dir = currentSort.dir === 'asc' ? 'desc' : 'asc';
+  } else {
+    currentSort.col = col;
+    currentSort.dir = 'desc';
+  }
+  buildHeader();
+  renderTable();
+}
+
+function toggleView(btn) {
+  document.querySelectorAll('.toggle-btn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  currentView = btn.dataset.show;
+  renderTable();
+  renderSummary();
+}
+
+// ===== Helpers =====
+function formatNum(n) {
+  if (n == null) return '-';
+  if (n >= 1000000) return (n / 1000000).toFixed(2) + 'M';
+  if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+  return n.toFixed(2);
+}
+
+function formatInt(n) {
+  if (n == null) return '-';
+  return n.toLocaleString();
+}
+
+function getLangClass(lang) {
+  var map = {
+    '英语':'lang-en','中文':'lang-zh','简体中文':'lang-zh','繁体中文':'lang-zh',
+    '日语':'lang-ja','韩语':'lang-ko','西班牙语':'lang-es','葡萄牙语':'lang-pt',
+    '印尼语':'lang-id','泰语':'lang-th','德语':'lang-de','法语':'lang-fr',
+    '阿拉伯语':'lang-ar','越南语':'lang-vi','土耳其':'lang-tr','俄语':'lang-ru'
+  };
+  return map[lang] || 'lang-default';
+}
+
+// ===== Upload Panel (Ctrl+Shift+U) =====
+document.addEventListener('keydown', function(e) {
+  if (e.ctrlKey && e.shiftKey && e.key === 'U') {
+    e.preventDefault();
+    var panel = document.getElementById('uploadPanel');
+    if (panel) { panel.remove(); return; }
+
+    panel = document.createElement('div');
+    panel.id = 'uploadPanel';
+    panel.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border:1px solid #5b8def;border-radius:12px;padding:24px;z-index:9999;width:420px;box-shadow:0 8px 32px rgba(0,0,0,.15)';
+    panel.innerHTML = '<h3 style="color:#1a1a2e;margin-bottom:12px">上传 pixel_data.js</h3>'
+      + '<input type="file" id="uploadFile" accept=".js" style="margin-bottom:12px;color:#1a1a2e">'
+      + '<div style="display:flex;gap:8px">'
+      + '<button onclick="doUpload()" style="background:#5b8def;color:#fff;border:none;padding:8px 20px;border-radius:6px;cursor:pointer">上传到 GitHub</button>'
+      + '<button onclick="this.parentElement.parentElement.remove()" style="background:#f0f1f5;color:#6b7194;border:1px solid #d1d5e4;padding:8px 20px;border-radius:6px;cursor:pointer">取消</button>'
+      + '</div>'
+      + '<div id="uploadStatus" style="margin-top:10px;font-size:12px;color:#8c8fa3"></div>';
+    document.body.appendChild(panel);
+  }
+});
+
+async function doUpload() {
+  var file = document.getElementById('uploadFile').files[0];
+  var status = document.getElementById('uploadStatus');
+  if (!file) { status.textContent = '请选择文件'; return; }
+
+  status.textContent = '读取文件...';
+  var text = await file.text();
+
+  status.textContent = '获取 GitHub 信息...';
+  var tk = atob('Z2hwX2RRSWJEODNicDBGSk5UQ253Mnp4Uk51SkNGeWRkcTFUSlBmSw==');
+  var api = 'https://api.github.com/repos/liujiahui-ux/reelshort-dashboard/contents/pixel_data.js';
+
+  try {
+    var r = await fetch(api, {headers:{'Authorization':'token '+tk}});
+    var sha = null;
+    if (r.ok) {
+      var info = await r.json();
+      sha = info.sha;
+    }
+
+    status.textContent = '上传中...';
+    var b64 = btoa(unescape(encodeURIComponent(text)));
+    var body = {message:'update pixel_data.js', content:b64};
+    if (sha) body.sha = sha;
+
+    var r2 = await fetch(api, {
+      method:'PUT',
+      headers:{'Authorization':'token '+tk,'Content-Type':'application/json'},
+      body: JSON.stringify(body)
+    });
+
+    if (r2.ok) {
+      status.innerHTML = '<span style="color:#4ade80">✓ 上传成功！刷新页面查看更新</span>';
+    } else {
+      var err = await r2.json();
+      status.innerHTML = '<span style="color:#ef4444">✗ 上传失败: ' + (err.message || r2.status) + '</span>';
+    }
+  } catch(e) {
+    status.innerHTML = '<span style="color:#ef4444">✗ 错误: ' + e.message + '</span>';
+  }
+}
+
+// Init
+window.onload = init;
+</script>
+</body>
+</html>
