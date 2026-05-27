@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ReelShort Pixel 数据看板 (EN)</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#f5f6fa;color:#1a1a2e;font-size:13px}
+.header{background:#fff;padding:16px 24px;border-bottom:1px solid #e2e5ed;display:flex;align-items:center;justify-content:space-between}
+.header h1{font-size:18px;color:#1a1a2e;font-weight:600}
+.header .meta{color:#8c8fa3;font-size:12px}
+.filters{background:#fff;padding:12px 24px;border-bottom:1px solid #e2e5ed;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.filter-group{display:flex;align-items:center;gap:6px}
+.filter-group label{color:#6b7194;font-size:12px;white-space:nowrap}
+.filter-group select{background:#fff;color:#1a1a2e;border:1px solid #d1d5e4;border-radius:6px;padding:5px 8px;font-size:12px;cursor:pointer;min-width:120px}
+.filter-group select:focus{outline:none;border-color:#5b8def}
+.search-box{background:#fff;color:#1a1a2e;border:1px solid #d1d5e4;border-radius:6px;padding:5px 10px;font-size:12px;width:200px}
+.search-box:focus{outline:none;border-color:#5b8def}
+.stats-bar{background:#fff;padding:8px 24px;border-bottom:1px solid #e2e5ed;display:flex;gap:24px}
+.stat-item{display:flex;align-items:center;gap:6px}
+.stat-label{color:#8c8fa3;font-size:11px}
+.stat-value{color:#1a1a2e;font-size:14px;font-weight:600}
+.table-wrap{overflow-x:auto;padding:0 12px 12px}
+table{width:100%;border-collapse:collapse;margin-top:8px}
+thead th{background:#f8f9fc;color:#6b7194;font-size:11px;font-weight:500;padding:8px 10px;text-align:right;position:sticky;top:0;z-index:2;cursor:pointer;white-space:nowrap;border-bottom:2px solid #e2e5ed;user-select:none}
+thead th:hover{color:#1a1a2e;background:#eef0f6}
+thead th.sort-asc::after{content:" ▲";color:#5b8def}
+thead th.sort-desc::after{content:" ▼";color:#5b8def}
+thead th:nth-child(-n+2){text-align:left}
+tbody tr{border-bottom:1px solid #f0f1f5;transition:background .15s}
+tbody tr:hover{background:#f0f4ff}
+tbody td{padding:7px 10px;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+tbody td:nth-child(-n+2){text-align:left}
+.plat-tag{display:inline-block;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600;text-transform:uppercase}
+.plat-fb{background:#e7f0ff;color:#1877f2}
+.plat-tt{background:#fff0f3;color:#e1234b}
+.roas-high{color:#16a34a}
+.roas-mid{color:#d97706}
+.roas-low{color:#dc2626}
+.pixel-name{font-family:"SF Mono",Consolas,monospace;font-size:11px;color:#4a5078;max-width:320px;overflow:hidden;text-overflow:ellipsis}
+.no-data{color:#8c8fa3;text-align:center;padding:40px;font-size:14px}
+.footer{text-align:center;padding:16px;color:#8c8fa3;font-size:11px;border-top:1px solid #e2e5ed}
+
+/* Summary cards */
+.summary-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;padding:12px 24px}
+.summary-card{background:#fff;border-radius:8px;padding:12px 16px;border:1px solid #e2e5ed}
+.summary-card .card-label{color:#8c8fa3;font-size:11px;margin-bottom:4px}
+.summary-card .card-value{color:#1a1a2e;font-size:20px;font-weight:700}
+.summary-card .card-sub{color:#8c8fa3;font-size:11px;margin-top:2px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>Pixel 数据看板 (English)</h1>
+    <div class="meta" id="metaInfo">加载中...</div>
+  </div>
+  <div style="display:flex;gap:12px;align-items:center">
+    <a href="recovery.html" style="color:#5b8def;font-size:12px;text-decoration:none">恢复投放 →</a>
+  </div>
+</div>
+
+<div class="summary-cards" id="summaryCards"></div>
+
+<div class="filters">
+  <div class="filter-group">
+    <label>平台</label>
+    <select id="filterPlat">
+      <option value="">全部</option>
+      <option value="fb">Facebook</option>
+      <option value="tt">TikTok</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label>Pixel</label>
+    <select id="filterPixel"><option value="">全部</option></select>
+  </div>
+  <div class="filter-group">
+    <label>搜索</label>
+    <input type="text" class="search-box" id="searchBox" placeholder="搜索 pixel 名称...">
+  </div>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr id="tableHead"></tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+  <div class="no-data" id="noData" style="display:none">没有匹配的数据</div>
+</div>
+
+<div class="footer">
+  ReelShort UA · Pixel 数据看板 (English) · 数据来源：投放分析报表
+</div>
+
+<script>document.write('<scr'+'ipt src="pixel_data.js?v='+Date.now()+'"></scr'+'ipt>');</script>
+<script>
+// ===== Config =====
+var COLS = [
+  {key:'plat', label:'平台', align:'left', type:'platform'},
+  {key:'pixel', label:'Pixel 名称', align:'left', type:'pixel'},
+  {key:'spend', label:'花费($)', align:'right', type:'money'},
+  {key:'d0_roas', label:'D0 ROAS', align:'right', type:'percent'},
+  {key:'d0_revenue', label:'D0 Revenue($)', align:'right', type:'money'},
+  {key:'cpm', label:'CPM($)', align:'right', type:'decimal'},
+  {key:'activations', label:'激活数', align:'right', type:'int'},
+  {key:'paying_users', label:'付费数', align:'right', type:'int'},
+  {key:'cpi', label:'CPI($)', align:'right', type:'decimal'},
+  {key:'payment_rate', label:'付费率', align:'right', type:'percent'},
+  {key:'arppu', label:'ARPPU($)', align:'right', type:'decimal'},
+  {key:'new_ratio', label:'新用户占比', align:'right', type:'percent'},
+  {key:'old_ratio', label:'老用户占比', align:'right', type:'percent'}
+];
+
+// ===== Data Processing =====
+var DATA = [];
+var currentSort = {col: 'spend', dir: 'desc'};
+
+function init() {
+  if (typeof PIXEL_RAW === 'undefined') {
+    document.getElementById('noData').style.display = 'block';
+    document.getElementById('noData').textContent = '数据文件加载失败，请检查 pixel_data.js';
+    return;
+  }
+
+  // Parse raw data — only keep English (英语), exclude subtotals
+  DATA = [];
+  PIXEL_RAW.forEach(function(r) {
+    if (r[0] === '英语' && r[2] !== '_subtotal') {
+      DATA.push({
+        lang: r[0],
+        plat: r[1],
+        pixel: r[2],
+        spend: r[3],
+        d0_roas: r[4],
+        d0_revenue: r[5],
+        cpm: r[6],
+        activations: r[7],
+        paying_users: r[8],
+cpi: r[9],
+        payment_rate: r[10],
+        arppu: r[11],
+        new_ratio: r[12],
+        old_ratio: r[13]
+      });
+    }
+  });
+
+  // Meta info
+  if (typeof PIXEL_META !== 'undefined') {
+    document.getElementById('metaInfo').textContent = '更新时间: ' + PIXEL_META.update + ' · ' + (PIXEL_META.source || '') + ' · 仅英语数据';
+  }
+
+  // Populate pixel filter
+  populateFilters();
+
+  // Build table header
+  buildHeader();
+
+  // Render summary
+  renderSummary();
+
+  // Render table
+  renderTable();
+}
+
+function populateFilters() {
+  var pixels = {};
+  DATA.forEach(function(d) {
+    if (d.pixel) pixels[d.pixel] = 1;
+  });
+
+  var pixelSel = document.getElementById('filterPixel');
+  Object.keys(pixels).sort().forEach(function(p) {
+    var o = document.createElement('option');
+    o.value = p; o.textContent = p;
+    pixelSel.appendChild(o);
+  });
+
+  // Events
+  pixelSel.onchange = document.getElementById('filterPlat').onchange = function(){ renderTable(); renderSummary(); };
+  document.getElementById('searchBox').oninput = function(){ renderTable(); };
+}
+
+function buildHeader() {
+  var tr = document.getElementById('tableHead');
+  tr.innerHTML = '';
+  COLS.forEach(function(c) {
+    var th = document.createElement('th');
+    th.textContent = c.label;
+    th.dataset.col = c.key;
+    if (c.align === 'left') th.style.textAlign = 'left';
+    if (currentSort.col === c.key) th.className = 'sort-' + currentSort.dir;
+    th.onclick = function() { sortBy(c.key); };
+    tr.appendChild(th);
+  });
+}
+
+function getFilteredData() {
+  var plat = document.getElementById('filterPlat').value;
+  var pixel = document.getElementById('filterPixel').value;
+  var search = document.getElementById('searchBox').value.toLowerCase();
+
+  return DATA.filter(function(d) {
+    if (plat && d.plat !== plat) return false;
+    if (pixel && d.pixel !== pixel) return false;
+    if (search && d.pixel && d.pixel.toLowerCase().indexOf(search) === -1) return false;
+    return true;
+  });
+}
+
+function renderSummary() {
+  var filtered = getFilteredData();
+  var totalSpend = 0, totalRevenue = 0, totalActivations = 0, totalPaying = 0;
+  var count = 0;
+
+  filtered.forEach(function(d) {
+    totalSpend += (d.spend || 0);
+    totalRevenue += (d.d0_revenue || 0);
+    totalActivations += (d.activations || 0);
+    totalPaying += (d.paying_users || 0);
+    count++;
+  });
+
+  var avgRoas = totalSpend > 0 ? (totalRevenue / totalSpend) : 0;
+  var avgPayRate = totalActivations > 0 ? (totalPaying / totalActivations) : 0;
+
+  var cards = [
+    {label: 'Pixel 数量', value: count, sub: 'English only'},
+    {label: '总花费', value: '$' + formatNum(totalSpend), sub: ''},
+    {label: '总 D0 Revenue', value: '$' + formatNum(totalRevenue), sub: ''},
+    {label: '加权 D0 ROAS', value: (avgRoas * 100).toFixed(2) + '%', sub: '按花费加权'},
+    {label: '总激活数', value: formatInt(totalActivations), sub: ''},
+    {label: '总付费数', value: formatInt(totalPaying), sub: '加权付费率 ' + (avgPayRate * 100).toFixed(2) + '%'}
+  ];
+
+  var html = '';
+  cards.forEach(function(c) {
+    html += '<div class="summary-card"><div class="card-label">' + c.label + '</div><div class="card-value">' + c.value + '</div><div class="card-sub">' + c.sub + '</div></div>';
+  });
+  document.getElementById('summaryCards').innerHTML = html;
+}
+
+function renderTable() {
+  var filtered = getFilteredData();
+
+  // Sort
+  filtered.sort(function(a, b) {
+    var va = a[currentSort.col], vb = b[currentSort.col];
+    if (va == null) va = -Infinity;
+    if (vb == null) vb = -Infinity;
+    if (typeof va === 'string') {
+      return currentSort.dir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+    }
+    return currentSort.dir === 'asc' ? va - vb : vb - va;
+  });
+
+  var tbody = document.getElementById('tableBody');
+  tbody.innerHTML = '';
+
+  if (filtered.length === 0) {
+    document.getElementById('noData').style.display = 'block';
+    return;
+  }
+  document.getElementById('noData').style.display = 'none';
+
+  filtered.forEach(function(d) {
+    var tr = document.createElement('tr');
+
+    COLS.forEach(function(c) {
+      var td = document.createElement('td');
+      var v = d[c.key];
+
+      if (c.type === 'platform') {
+        if (v === 'fb') td.innerHTML = '<span class="plat-tag plat-fb">FB</span>';
+        else if (v === 'tt') td.innerHTML = '<span class="plat-tag plat-tt">TT</span>';
+        else td.textContent = v || '-';
+      } else if (c.type === 'pixel') {
+        td.className = 'pixel-name';
+        td.textContent = v || '-';
+        td.title = v || '';
+      } else if (c.type === 'percent') {
+        if (v != null) {
+          var pct = (v * 100).toFixed(2) + '%';
+          if (c.key === 'd0_roas') {
+            var cls = v >= 0.30 ? 'roas-high' : (v >= 0.20 ? 'roas-mid' : 'roas-low');
+            td.innerHTML = '<span class="' + cls + '">' + pct + '</span>';
+          } else {
+            td.textContent = pct;
+          }
+        } else {
+          td.textContent = '-';
+          td.style.color = '#b0b3c6';
+        }
+      } else if (c.type === 'money') {
+        td.textContent = v != null ? '$' + formatNum(v) : '-';
+        if (v == null) td.style.color = '#b0b3c6';
+      } else if (c.type === 'int') {
+        td.textContent = v != null ? formatInt(v) : '-';
+        if (v == null) td.style.color = '#b0b3c6';
+      } else if (c.type === 'decimal') {
+        td.textContent = v != null ? v.toFixed(2) : '-';
+        if (v == null) td.style.color = '#b0b3c6';
+      } else {
+        td.textContent = v || '-';
+      }
+
+      if (c.align === 'left') td.style.textAlign = 'left';
+      tr.appendChild(td);
+    });
+
+    tbody.appendChild(tr);
+  });
+}
+
+function sortBy(col) {
+  if (currentSort.col === col) {
+    currentSort.dir = currentSort.dir === 'asc' ? 'desc' : 'asc';
+  } else {
+    currentSort.col = col;
+    currentSort.dir = 'desc';
+  }
+  buildHeader();
+  renderTable();
+}
+
+// ===== Helpers =====
+function formatNum(n) {
+  if (n == null) return '-';
+  if (n >= 1000000) return (n / 1000000).toFixed(2) + 'M';
+  if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+  return n.toFixed(2);
+}
+
+function formatInt(n) {
+  if (n == null) return '-';
+  return n.toLocaleString();
+}
+
+// Init
+window.onload = init;
+</script>
+</body>
+</html>
