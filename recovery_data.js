@@ -15,6 +15,14 @@ var STOP_RECORDS=[
 ["LDH","My Secret Lover Is His Brother","2026-05-18"],
 ["wgh","Mic Drop Diva","2026-05-18"],
 ["Mike","My Double Proxy Marriage to a Billionaire","2026-05-18"],
-["zhub","After I bought sperm from a billionaire alpha","2026-05-18"]
+["zhub","After I bought sperm from a billionaire alpha","2026-05-18"],
+["Cecilia","Waterboy: Second Down","2026-06-18"],
+["Gawaine","My Brothers Begged, But I'm the Dragon's Queen","2026-06-18"],
+["jyc","My Brothers Begged, But I'm the Dragon's Queen","2026-06-18"],
+["wgh","My Brothers Begged, But I'm the Dragon's Queen","2026-06-18"],
+["wgh","Waterboy: Second Down","2026-06-18"],
+["wyq","My Brothers Begged, But I'm the Dragon's Queen","2026-06-18"],
+["CSH","My Brothers Begged, But I'm the Dragon's Queen","2026-06-18"],
+["Dora","My Brothers Begged, But I'm the Dragon's Queen","2026-06-18"]
 ];
-var RECOVERY_META={cooldown:14,update:"2026-05-18"};
+var RECOVERY_META={cooldown:14,update:"2026-06-18"};
