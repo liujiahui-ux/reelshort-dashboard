@@ -23,6 +23,10 @@ var STOP_RECORDS=[
 ["wgh","Waterboy: Second Down","2026-06-18"],
 ["wyq","My Brothers Begged, But I'm the Dragon's Queen","2026-06-18"],
 ["CSH","My Brothers Begged, But I'm the Dragon's Queen","2026-06-18"],
-["Dora","My Brothers Begged, But I'm the Dragon's Queen","2026-06-18"]
+["Dora","My Brothers Begged, But I'm the Dragon's Queen","2026-06-18"],
+["zyf","Waterboy: Second Down","2026-06-22"],
+["QY","The Luna's Second Choice","2026-06-22"],
+["jyc","The Luna's Second Choice","2026-06-22"],
+["SYQ","Rejected Luna Is the Alpha Queen","2026-06-22"]
 ];
-var RECOVERY_META={cooldown:14,update:"2026-06-18"};
+var RECOVERY_META={cooldown:14,update:"2026-06-22"};
