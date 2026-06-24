@@ -27,6 +27,15 @@ var STOP_RECORDS=[
 ["zyf","Waterboy: Second Down","2026-06-22"],
 ["QY","The Luna's Second Choice","2026-06-22"],
 ["jyc","The Luna's Second Choice","2026-06-22"],
-["SYQ","Rejected Luna Is the Alpha Queen","2026-06-22"]
+["SYQ","Rejected Luna Is the Alpha Queen","2026-06-22"],
+["jyc","I Accidentally Sexted My Enemy","2026-06-24"],
+["Gawaine","The Hockey Captain That Hates Me","2026-06-24"],
+["LDH","The Luna's Second Choice","2026-06-24"],
+["wgh","The Hockey Captain That Hates Me","2026-06-24"],
+["FEE","I Accidentally Sexted My Enemy","2026-06-24"],
+["cxd","Djinn Under Contract","2026-06-24"],
+["yjn","My Brothers Begged, But I'm the Dragon's Queen","2026-06-24"],
+["yjn","The Hockey Captain That Hates Me","2026-06-24"],
+["szy","The Hockey Captain That Hates Me","2026-06-24"]
 ];
-var RECOVERY_META={cooldown:14,update:"2026-06-22"};
+var RECOVERY_META={cooldown:14,update:"2026-06-24"};
