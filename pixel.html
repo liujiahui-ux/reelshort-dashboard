@@ -30,12 +30,13 @@ thead th{background:#f8f9fc;color:#6b7194;font-size:11px;font-weight:500;padding
 thead th:hover{color:#1a1a2e;background:#eef0f6}
 thead th.sort-asc::after{content:" ▲";color:#5b8def}
 thead th.sort-desc::after{content:" ▼";color:#5b8def}
-thead th:nth-child(-n+3){text-align:left}
+thead th:nth-child(-n+5){text-align:left}
 tbody tr{border-bottom:1px solid #f0f1f5;transition:background .15s}
 tbody tr:hover{background:#f0f4ff}
-tbody tr.subtotal-row{background:#f8f9fc;font-weight:600;border-top:2px solid #e2e5ed}
+tbody tr.subtotal-row{background:#eef2fb;font-weight:600;border-top:2px solid #d1d5e4}
+tbody tr.lang-subtotal-row{background:#e2e8f4;font-weight:700;border-top:2px solid #b0b8d0}
 tbody td{padding:7px 10px;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
-tbody td:nth-child(-n+3){text-align:left}
+tbody td:nth-child(-n+5){text-align:left}
 .lang-tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500}
 .plat-tag{display:inline-block;padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600;text-transform:uppercase}
 .plat-fb{background:#e7f0ff;color:#1877f2}
@@ -44,6 +45,7 @@ tbody td:nth-child(-n+3){text-align:left}
 .roas-mid{color:#d97706}
 .roas-low{color:#dc2626}
 .pixel-name{font-family:"SF Mono",Consolas,monospace;font-size:11px;color:#4a5078;max-width:320px;overflow:hidden;text-overflow:ellipsis}
+.drama-name{font-size:12px;color:#4a5078;max-width:260px;overflow:hidden;text-overflow:ellipsis}
 .no-data{color:#8c8fa3;text-align:center;padding:40px;font-size:14px}
 .footer{text-align:center;padding:16px;color:#8c8fa3;font-size:11px;border-top:1px solid #e2e5ed}
 
@@ -105,13 +107,18 @@ tbody td:nth-child(-n+3){text-align:left}
     <select id="filterPixel"><option value="">全部</option></select>
   </div>
   <div class="filter-group">
+    <label>剧目</label>
+    <select id="filterDrama"><option value="">全部</option></select>
+  </div>
+  <div class="filter-group">
     <label>搜索</label>
-    <input type="text" class="search-box" id="searchBox" placeholder="搜索 pixel 名称...">
+    <input type="text" class="search-box" id="searchBox" placeholder="搜索 pixel / 剧目名称...">
   </div>
   <div class="filter-group">
     <label>显示</label>
     <div class="toggle-group">
-      <button class="toggle-btn active" data-show="pixel" onclick="toggleView(this)">Pixel 明细</button>
+      <button class="toggle-btn active" data-show="drama" onclick="toggleView(this)">剧目明细</button>
+      <button class="toggle-btn" data-show="pixel" onclick="toggleView(this)">Pixel 汇总</button>
       <button class="toggle-btn" data-show="subtotal" onclick="toggleView(this)">语言小计</button>
     </div>
   </div>
@@ -138,6 +145,8 @@ var COLS = [
   {key:'lang', label:'语言', align:'left', type:'text'},
   {key:'plat', label:'平台', align:'left', type:'platform'},
   {key:'pixel', label:'Pixel 名称', align:'left', type:'pixel'},
+  {key:'drama_cn', label:'剧目(中文)', align:'left', type:'drama'},
+  {key:'drama_en', label:'剧目(英文)', align:'left', type:'drama'},
   {key:'spend', label:'花费($)', align:'right', type:'money'},
   {key:'d0_roas', label:'D0 ROAS', align:'right', type:'percent'},
   {key:'d0_revenue', label:'D0 Revenue($)', align:'right', type:'money'},
@@ -154,7 +163,7 @@ var COLS = [
 // ===== Data Processing =====
 var DATA = [];
 var currentSort = {col: 'spend', dir: 'desc'};
-var currentView = 'pixel';
+var currentView = 'drama';
 
 function init() {
   if (typeof PIXEL_RAW === 'undefined') {
@@ -163,24 +172,28 @@ function init() {
     return;
   }
 
-  // Parse raw data
+  // Parse raw data — new format with drama fields at index 3,4
   DATA = PIXEL_RAW.map(function(r) {
     return {
       lang: r[0],
       plat: r[1],
       pixel: r[2],
-      spend: r[3],
-      d0_roas: r[4],
-      d0_revenue: r[5],
-      cpm: r[6],
-      activations: r[7],
-      paying_users: r[8],
-      cpi: r[9],
-      payment_rate: r[10],
-      arppu: r[11],
-      new_ratio: r[12],
-      old_ratio: r[13],
-      is_subtotal: r[2] === '_subtotal'
+      drama_cn: r[3],
+      drama_en: r[4],
+      spend: r[5],
+      d0_roas: r[6],
+      d0_revenue: r[7],
+      cpm: r[8],
+      activations: r[9],
+      paying_users: r[10],
+      cpi: r[11],
+      payment_rate: r[12],
+      arppu: r[13],
+      new_ratio: r[14],
+      old_ratio: r[15],
+      is_lang_subtotal: r[2] === '_subtotal',
+      is_pixel_subtotal: r[3] === '_subtotal' && r[2] !== '_subtotal',
+      is_drama: r[3] !== '_subtotal' && r[2] !== '_subtotal'
     };
   });
 
@@ -195,19 +208,19 @@ function init() {
   // Build table header
   buildHeader();
 
-  // Render summary
+  // Render
   renderSummary();
-
-  // Render table
   renderTable();
 }
 
 function populateFilters() {
   var langs = {};
   var pixels = {};
+  var dramas = {};
   DATA.forEach(function(d) {
     if (d.lang && d.lang !== '-') langs[d.lang] = 1;
-    if (!d.is_subtotal && d.pixel) pixels[d.pixel] = 1;
+    if (!d.is_lang_subtotal && d.pixel) pixels[d.pixel] = 1;
+    if (d.is_drama && d.drama_cn) dramas[d.drama_cn] = 1;
   });
 
   var langSel = document.getElementById('filterLang');
@@ -224,8 +237,15 @@ function populateFilters() {
     pixelSel.appendChild(o);
   });
 
+  var dramaSel = document.getElementById('filterDrama');
+  Object.keys(dramas).sort().forEach(function(d) {
+    var o = document.createElement('option');
+    o.value = d; o.textContent = d;
+    dramaSel.appendChild(o);
+  });
+
   // Events
-  langSel.onchange = pixelSel.onchange = document.getElementById('filterPlat').onchange = function(){ renderTable(); renderSummary(); };
+  langSel.onchange = pixelSel.onchange = dramaSel.onchange = document.getElementById('filterPlat').onchange = function(){ renderTable(); renderSummary(); };
   document.getElementById('searchBox').oninput = function(){ renderTable(); };
 }
 
@@ -247,37 +267,78 @@ function getFilteredData() {
   var lang = document.getElementById('filterLang').value;
   var plat = document.getElementById('filterPlat').value;
   var pixel = document.getElementById('filterPixel').value;
+  var drama = document.getElementById('filterDrama').value;
   var search = document.getElementById('searchBox').value.toLowerCase();
 
   return DATA.filter(function(d) {
-    if (currentView === 'pixel' && d.is_subtotal) return false;
-    if (currentView === 'subtotal' && !d.is_subtotal) return false;
+    // View filter
+    if (currentView === 'drama') {
+      // Show drama rows + pixel subtotals (not lang subtotals)
+      if (d.is_lang_subtotal) return false;
+    } else if (currentView === 'pixel') {
+      // Show only pixel subtotals (collapsed view)
+      if (!d.is_pixel_subtotal) return false;
+    } else if (currentView === 'subtotal') {
+      // Show only language subtotals
+      if (!d.is_lang_subtotal) return false;
+    }
+
+    // Dimension filters
     if (lang && d.lang !== lang) return false;
-    if (plat && d.plat !== plat) return false;
+    if (plat && d.plat !== plat && d.plat !== '-') return false;
     if (pixel && d.pixel !== pixel) return false;
-    if (search && d.pixel && d.pixel.toLowerCase().indexOf(search) === -1) return false;
+    if (drama && d.drama_cn !== drama && d.drama_cn === '_subtotal') {
+      // When filtering by drama, still show pixel subtotals? No — hide them
+      return false;
+    }
+    if (drama && d.is_drama && d.drama_cn !== drama) return false;
+
+    // Search
+    if (search) {
+      var haystack = ((d.pixel || '') + ' ' + (d.drama_cn || '') + ' ' + (d.drama_en || '')).toLowerCase();
+      if (haystack.indexOf(search) === -1) return false;
+    }
     return true;
   });
 }
 
 function renderSummary() {
-  var filtered = getFilteredData();
-  var totalSpend = 0, totalRevenue = 0, totalActivations = 0, totalPaying = 0;
-  var count = 0;
+  // Use pixel-subtotal rows for summary to avoid double counting
+  var lang = document.getElementById('filterLang').value;
+  var plat = document.getElementById('filterPlat').value;
+  var pixel = document.getElementById('filterPixel').value;
 
-  filtered.forEach(function(d) {
+  var summaryData;
+  if (currentView === 'subtotal') {
+    summaryData = DATA.filter(function(d) { return d.is_lang_subtotal; });
+  } else {
+    summaryData = DATA.filter(function(d) { return d.is_pixel_subtotal; });
+  }
+
+  summaryData = summaryData.filter(function(d) {
+    if (lang && d.lang !== lang) return false;
+    if (plat && d.plat !== plat && d.plat !== '-') return false;
+    if (pixel && d.pixel !== pixel) return false;
+    return true;
+  });
+
+  var totalSpend = 0, totalRevenue = 0, totalActivations = 0, totalPaying = 0;
+  var pixelCount = summaryData.length;
+
+  summaryData.forEach(function(d) {
     totalSpend += (d.spend || 0);
     totalRevenue += (d.d0_revenue || 0);
     totalActivations += (d.activations || 0);
     totalPaying += (d.paying_users || 0);
-    count++;
   });
 
   var avgRoas = totalSpend > 0 ? (totalRevenue / totalSpend) : 0;
   var avgPayRate = totalActivations > 0 ? (totalPaying / totalActivations) : 0;
 
+  var countLabel = currentView === 'subtotal' ? '语言数量' : 'Pixel 数量';
+
   var cards = [
-    {label: 'Pixel 数量', value: count, sub: '当前筛选'},
+    {label: countLabel, value: pixelCount, sub: '当前筛选'},
     {label: '总花费', value: '$' + formatNum(totalSpend), sub: ''},
     {label: '总 D0 Revenue', value: '$' + formatNum(totalRevenue), sub: ''},
     {label: '加权 D0 ROAS', value: (avgRoas * 100).toFixed(2) + '%', sub: '按花费加权'},
@@ -295,16 +356,57 @@ function renderSummary() {
 function renderTable() {
   var filtered = getFilteredData();
 
-  // Sort
-  filtered.sort(function(a, b) {
-    var va = a[currentSort.col], vb = b[currentSort.col];
-    if (va == null) va = -Infinity;
-    if (vb == null) vb = -Infinity;
-    if (typeof va === 'string') {
-      return currentSort.dir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
-    }
-    return currentSort.dir === 'asc' ? va - vb : vb - va;
-  });
+  // Sort — keep pixel grouping in drama view
+  if (currentView === 'drama') {
+    // Within drama view, sort by pixel group then by sort column within each group
+    // First, group by pixel
+    var groups = {};
+    var groupOrder = [];
+    filtered.forEach(function(d) {
+      var gk = d.lang + '|' + d.plat + '|' + d.pixel;
+      if (!groups[gk]) { groups[gk] = {dramas:[], subtotal:null}; groupOrder.push(gk); }
+      if (d.is_pixel_subtotal) groups[gk].subtotal = d;
+      else groups[gk].dramas.push(d);
+    });
+
+    // Sort groups by the subtotal's sort column
+    groupOrder.sort(function(a, b) {
+      var sa = groups[a].subtotal, sb = groups[b].subtotal;
+      var va = sa ? sa[currentSort.col] : null;
+      var vb = sb ? sb[currentSort.col] : null;
+      if (va == null) va = -Infinity;
+      if (vb == null) vb = -Infinity;
+      if (typeof va === 'string') return currentSort.dir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+      return currentSort.dir === 'asc' ? va - vb : vb - va;
+    });
+
+    // Sort dramas within each group
+    groupOrder.forEach(function(gk) {
+      groups[gk].dramas.sort(function(a, b) {
+        var va = a[currentSort.col], vb = b[currentSort.col];
+        if (va == null) va = -Infinity;
+        if (vb == null) vb = -Infinity;
+        if (typeof va === 'string') return currentSort.dir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+        return currentSort.dir === 'asc' ? va - vb : vb - va;
+      });
+    });
+
+    // Flatten
+    filtered = [];
+    groupOrder.forEach(function(gk) {
+      filtered = filtered.concat(groups[gk].dramas);
+      if (groups[gk].subtotal) filtered.push(groups[gk].subtotal);
+    });
+  } else {
+    // Simple sort
+    filtered.sort(function(a, b) {
+      var va = a[currentSort.col], vb = b[currentSort.col];
+      if (va == null) va = -Infinity;
+      if (vb == null) vb = -Infinity;
+      if (typeof va === 'string') return currentSort.dir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+      return currentSort.dir === 'asc' ? va - vb : vb - va;
+    });
+  }
 
   var tbody = document.getElementById('tableBody');
   tbody.innerHTML = '';
@@ -317,7 +419,8 @@ function renderTable() {
 
   filtered.forEach(function(d) {
     var tr = document.createElement('tr');
-    if (d.is_subtotal) tr.className = 'subtotal-row';
+    if (d.is_lang_subtotal) tr.className = 'lang-subtotal-row';
+    else if (d.is_pixel_subtotal) tr.className = 'subtotal-row';
 
     COLS.forEach(function(c) {
       var td = document.createElement('td');
@@ -329,8 +432,20 @@ function renderTable() {
         else td.textContent = v || '-';
       } else if (c.type === 'pixel') {
         td.className = 'pixel-name';
-        td.textContent = d.is_subtotal ? '(小计 - 未分配pixel)' : (v || '-');
+        td.textContent = d.is_lang_subtotal ? '(语言小计)' : (v || '-');
         td.title = v || '';
+      } else if (c.type === 'drama') {
+        td.className = 'drama-name';
+        if (d.is_pixel_subtotal) {
+          td.textContent = c.key === 'drama_cn' ? '▸ Pixel 小计' : '';
+          td.style.fontWeight = '600';
+          td.style.color = '#5b8def';
+        } else if (d.is_lang_subtotal) {
+          td.textContent = '';
+        } else {
+          td.textContent = v || '-';
+          td.title = v || '';
+        }
       } else if (c.key === 'lang') {
         td.innerHTML = '<span class="lang-tag ' + getLangClass(v) + '">' + (v || '-') + '</span>';
       } else if (c.type === 'percent') {
