@@ -19,6 +19,32 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hira
 .card-green .num{color:#27ae60}
 .card-orange{border-left:5px solid #e67e22}
 .card-orange .num{color:#e67e22}
+/* Filter bar */
+.filter-bar{background:#fff;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);padding:16px 24px;margin-bottom:24px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.filter-bar .filter-label{font-size:13px;color:#888;font-weight:600}
+.filter-group{position:relative}
+.filter-btn{padding:8px 16px;border:1px solid #ddd;border-radius:8px;background:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:6px;min-width:140px;justify-content:space-between}
+.filter-btn:hover{border-color:#0f3460}
+.filter-btn .arrow{font-size:10px;color:#999}
+.filter-dropdown{position:absolute;top:calc(100% + 4px);left:0;background:#fff;border:1px solid #ddd;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.12);z-index:200;min-width:200px;max-height:300px;overflow-y:auto;display:none}
+.filter-dropdown.show{display:block}
+.filter-dropdown .fd-item{padding:8px 16px;cursor:pointer;font-size:14px;display:flex;align-items:center;gap:8px}
+.filter-dropdown .fd-item:hover{background:#f5f5f5}
+.filter-dropdown .fd-item input{margin:0}
+.filter-dropdown .fd-actions{padding:8px 16px;border-top:1px solid #eee;display:flex;gap:8px;justify-content:flex-end}
+.fd-actions button{padding:4px 12px;border:none;border-radius:4px;font-size:12px;cursor:pointer}
+.fd-actions .btn-clear{background:#f0f0f0;color:#666}
+.fd-actions .btn-clear:hover{background:#e0e0e0}
+.fd-actions .btn-all{background:#0f3460;color:#fff}
+.fd-actions .btn-all:hover{background:#16213e}
+.filter-select{padding:8px 16px;border:1px solid #ddd;border-radius:8px;background:#fff;font-size:14px;cursor:pointer;min-width:140px}
+.filter-select:hover{border-color:#0f3460}
+.filter-tags{display:flex;gap:6px;flex-wrap:wrap}
+.filter-tag{background:#e8eef7;color:#0f3460;font-size:12px;padding:2px 8px;border-radius:4px;display:flex;align-items:center;gap:4px}
+.filter-tag .tag-close{cursor:pointer;font-weight:700;font-size:14px}
+.filter-tag .tag-close:hover{color:#c0392b}
+.filter-count{font-size:13px;color:#888;margin-left:auto}
+/* Sections */
 .section{background:#fff;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);margin-bottom:24px;overflow:hidden}
 .section-header{padding:18px 24px;font-size:16px;font-weight:700;display:flex;align-items:center;gap:10px;border-bottom:1px solid #eee}
 .section-header .icon{font-size:22px}
@@ -48,6 +74,7 @@ tr:hover td{background:#fafbfc}
   .header h1{font-size:18px}
   td,th{padding:10px 12px;font-size:13px}
   .drama-name{max-width:160px}
+  .filter-bar{flex-direction:column;align-items:stretch}
 }
 </style>
 </head>
@@ -75,6 +102,26 @@ tr:hover td{background:#fafbfc}
     </div>
   </div>
 
+  <!-- Filter bar -->
+  <div class="filter-bar">
+    <span class="filter-label">筛选：</span>
+    <div class="filter-group" id="optFilterGroup">
+      <div class="filter-btn" id="optFilterBtn" onclick="toggleDropdown()">
+        <span id="optFilterText">全部优化师</span>
+        <span class="arrow">▼</span>
+      </div>
+      <div class="filter-dropdown" id="optDropdown"></div>
+    </div>
+    <select class="filter-select" id="daysFilter" onchange="applyFilters()">
+      <option value="all">全部剩余天数</option>
+      <option value="ready">已到期（可恢复）</option>
+      <option value="1-3">1-3 天</option>
+      <option value="4-7">4-7 天</option>
+      <option value="8-14">8-14 天</option>
+    </select>
+    <span class="filter-count" id="filterCount"></span>
+  </div>
+
   <div class="section section-green" id="readySection">
     <div class="section-header">
       <span class="icon">✅</span>
@@ -93,13 +140,13 @@ tr:hover td{background:#fafbfc}
     <div id="coolingBody"></div>
   </div>
 
-  </div>
+</div>
 
 <div class="footer">
   ReelShort 跟投管理系统 · 仅限内部使用 · 被动停投冷却期14天（次日起算）
 </div>
 
-<script src="recovery_data.js?v=0514a"></script>
+<script>document.write('<scr'+'ipt src="recovery_data.js?v='+Date.now()+'"><\/scr'+'ipt>');</script>
 <script>
 (function(){
   var today = new Date();
@@ -108,9 +155,9 @@ tr:hover td{background:#fafbfc}
   document.getElementById("hdrUpdate").textContent = "数据更新：" + RECOVERY_META.update;
   document.getElementById("hdrToday").textContent = "当前日期：" + fmt(today);
 
-  var ready = [];
-  var cooling = [];
-
+  // Parse all records
+  var allItems = [];
+  var optSet = {};
   for (var i = 0; i < STOP_RECORDS.length; i++) {
     var r = STOP_RECORDS[i];
     var optimizer = r[0];
@@ -123,50 +170,173 @@ tr:hover td{background:#fafbfc}
     var elapsed = Math.floor((today.getTime() - stopDate.getTime()) / (1000*60*60*24));
     var cooledDays = Math.max(0, elapsed - 1);
     var progress = Math.min(100, Math.round(cooledDays / RECOVERY_META.cooldown * 100));
-    var item = {optimizer:optimizer, drama:drama, stopDate:stopDate, recoveryDate:recoveryDate, daysLeft:daysLeft, progress:progress, cooledDays:cooledDays};
-    if (daysLeft <= 0) { ready.push(item); } else { cooling.push(item); }
+    var item = {optimizer:optimizer, drama:drama, stopDate:stopDate, recoveryDate:recoveryDate, daysLeft:daysLeft, progress:progress, cooledDays:cooledDays, isReady: daysLeft <= 0};
+    allItems.push(item);
+    optSet[optimizer] = true;
   }
-  ready.sort(function(a,b){ return a.stopDate - b.stopDate; });
-  cooling.sort(function(a,b){ return a.daysLeft - b.daysLeft; });
 
-  document.getElementById("readyCount").textContent = ready.length;
-  document.getElementById("coolingCount").textContent = cooling.length;
-  document.getElementById("readyBadge").textContent = ready.length;
-  document.getElementById("coolingBadge").textContent = cooling.length;
+  // Build optimizer dropdown
+  var optList = Object.keys(optSet).sort(function(a,b){ return a.toLowerCase().localeCompare(b.toLowerCase()); });
+  var selectedOpts = {}; // empty = all selected
+  buildOptDropdown(optList);
 
-  if (ready.length === 0) {
-    document.getElementById("readyBody").innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div>今日暂无可恢复的投放组合<br><small>当冷却期满14天后，对应组合会出现在这里</small></div>';
-  } else {
-    var html = '<table><thead><tr><th>优化师</th><th>剧目</th><th>停投日期</th><th>可恢复日期</th><th>状态</th></tr></thead><tbody>';
-    for (var j = 0; j < ready.length; j++) {
-      var it = ready[j];
-      html += '<tr><td><strong>' + esc(it.optimizer) + '</strong></td>'
-        + '<td class="drama-name">' + esc(it.drama) + '</td>'
-        + '<td>' + fmt(it.stopDate) + '</td>'
-        + '<td>' + fmt(it.recoveryDate) + '</td>'
-        + '<td><span class="badge-ready">可申请恢复</span></td></tr>';
+  // Initial render
+  applyFilters();
+
+  // Expose to global
+  window.applyFilters = applyFilters;
+  window.toggleDropdown = toggleDropdown;
+  window.toggleOpt = toggleOpt;
+  window.selectAllOpts = selectAllOpts;
+  window.clearOpts = clearOpts;
+
+  function buildOptDropdown(list) {
+    var dd = document.getElementById("optDropdown");
+    var html = '<div class="fd-actions"><button class="btn-all" onclick="selectAllOpts()">全选</button><button class="btn-clear" onclick="clearOpts()">清除</button></div>';
+    for (var i = 0; i < list.length; i++) {
+      html += '<div class="fd-item" onclick="toggleOpt(\'' + esc(list[i]) + '\',event)">'
+        + '<input type="checkbox" checked data-opt="' + esc(list[i]) + '"> '
+        + esc(list[i]) + '</div>';
     }
-    html += '</tbody></table>';
-    document.getElementById("readyBody").innerHTML = html;
+    dd.innerHTML = html;
   }
-  if (cooling.length === 0) {
-    document.getElementById("coolingBody").innerHTML = '<div class="empty-state"><div class="empty-icon">🎉</div>所有被动停投组合均已度过冷却期！</div>';
-  } else {
-    var html2 = '<table><thead><tr><th>优化师</th><th>剧目</th><th>停投日期</th><th>剩余天数</th><th>冷却进度</th></tr></thead><tbody>';
-    for (var k = 0; k < cooling.length; k++) {
-      var c = cooling[k];
-      html2 += '<tr><td><strong>' + esc(c.optimizer) + '</strong></td>'
-        + '<td class="drama-name">' + esc(c.drama) + '</td>'
-        + '<td>' + fmt(c.stopDate) + '</td>'
-        + '<td><div class="days-left">' + c.daysLeft + ' 天</div>'
-        + '<div class="recovery-date">' + fmt(c.recoveryDate) + ' 可恢复</div></td>'
-        + '<td style="min-width:120px"><div style="font-size:12px;color:#888;margin-bottom:2px">'
-        + c.cooledDays + ' / ' + RECOVERY_META.cooldown + ' 天</div>'
-        + '<div class="progress-bar"><div class="progress-fill fill-orange" style="width:'
-        + c.progress + '%"></div></div></td></tr>';
+
+  function toggleDropdown() {
+    var dd = document.getElementById("optDropdown");
+    dd.classList.toggle("show");
+  }
+
+  // Close dropdown on outside click
+  document.addEventListener("click", function(e) {
+    var group = document.getElementById("optFilterGroup");
+    if (!group.contains(e.target)) {
+      document.getElementById("optDropdown").classList.remove("show");
     }
-    html2 += '</tbody></table>';
-    document.getElementById("coolingBody").innerHTML = html2;
+  });
+
+  function toggleOpt(name, e) {
+    if (e) e.stopPropagation();
+    var cbs = document.querySelectorAll('#optDropdown input[type="checkbox"]');
+    for (var i = 0; i < cbs.length; i++) {
+      if (cbs[i].getAttribute("data-opt") === name) {
+        cbs[i].checked = !cbs[i].checked;
+        break;
+      }
+    }
+    applyFilters();
+  }
+
+  function selectAllOpts() {
+    var cbs = document.querySelectorAll('#optDropdown input[type="checkbox"]');
+    for (var i = 0; i < cbs.length; i++) cbs[i].checked = true;
+    applyFilters();
+  }
+
+  function clearOpts() {
+    var cbs = document.querySelectorAll('#optDropdown input[type="checkbox"]');
+    for (var i = 0; i < cbs.length; i++) cbs[i].checked = false;
+    applyFilters();
+  }
+
+  function getSelectedOpts() {
+    var cbs = document.querySelectorAll('#optDropdown input[type="checkbox"]');
+    var sel = [];
+    var total = cbs.length;
+    for (var i = 0; i < cbs.length; i++) {
+      if (cbs[i].checked) sel.push(cbs[i].getAttribute("data-opt"));
+    }
+    return {selected: sel, allSelected: sel.length === total || sel.length === 0};
+  }
+
+  function applyFilters() {
+    var opts = getSelectedOpts();
+    var daysVal = document.getElementById("daysFilter").value;
+
+    // Update button text
+    var btnText = document.getElementById("optFilterText");
+    if (opts.allSelected) {
+      btnText.textContent = "全部优化师";
+    } else if (opts.selected.length === 0) {
+      btnText.textContent = "请选择";
+    } else if (opts.selected.length <= 2) {
+      btnText.textContent = opts.selected.join(", ");
+    } else {
+      btnText.textContent = opts.selected.length + " 位已选";
+    }
+
+    // Filter items
+    var filtered = [];
+    for (var i = 0; i < allItems.length; i++) {
+      var it = allItems[i];
+      // Optimizer filter
+      if (!opts.allSelected && opts.selected.indexOf(it.optimizer) === -1) continue;
+      // Days filter
+      if (daysVal === "ready" && !it.isReady) continue;
+      if (daysVal === "1-3" && (it.isReady || it.daysLeft < 1 || it.daysLeft > 3)) continue;
+      if (daysVal === "4-7" && (it.isReady || it.daysLeft < 4 || it.daysLeft > 7)) continue;
+      if (daysVal === "8-14" && (it.isReady || it.daysLeft < 8 || it.daysLeft > 14)) continue;
+      filtered.push(it);
+    }
+
+    var ready = [];
+    var cooling = [];
+    for (var j = 0; j < filtered.length; j++) {
+      if (filtered[j].isReady) ready.push(filtered[j]);
+      else cooling.push(filtered[j]);
+    }
+    ready.sort(function(a,b){ return a.stopDate - b.stopDate; });
+    cooling.sort(function(a,b){ return a.daysLeft - b.daysLeft; });
+
+    // Update counts
+    document.getElementById("readyCount").textContent = ready.length;
+    document.getElementById("coolingCount").textContent = cooling.length;
+    document.getElementById("readyBadge").textContent = ready.length;
+    document.getElementById("coolingBadge").textContent = cooling.length;
+    document.getElementById("filterCount").textContent = "显示 " + filtered.length + " / " + allItems.length + " 条";
+
+    // Render ready section
+    if (ready.length === 0) {
+      var readyMsg = daysVal !== "all" || !opts.allSelected ? "当前筛选条件下暂无可恢复的组合" : "今日暂无可恢复的投放组合";
+      document.getElementById("readyBody").innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div>' + readyMsg + '<br><small>当冷却期满14天后，对应组合会出现在这里</small></div>';
+    } else {
+      var html = '<table><thead><tr><th>优化师</th><th>剧目</th><th>停投日期</th><th>可恢复日期</th><th>状态</th></tr></thead><tbody>';
+      for (var k = 0; k < ready.length; k++) {
+        var ri = ready[k];
+        html += '<tr><td><strong>' + esc(ri.optimizer) + '</strong></td>'
+          + '<td class="drama-name">' + esc(ri.drama) + '</td>'
+          + '<td>' + fmt(ri.stopDate) + '</td>'
+          + '<td>' + fmt(ri.recoveryDate) + '</td>'
+          + '<td><span class="badge-ready">可申请恢复</span></td></tr>';
+      }
+      html += '</tbody></table>';
+      document.getElementById("readyBody").innerHTML = html;
+    }
+
+    // Render cooling section
+    if (cooling.length === 0) {
+      var coolMsg = daysVal !== "all" || !opts.allSelected ? "当前筛选条件下暂无冷却中的组合" : "所有被动停投组合均已度过冷却期！";
+      document.getElementById("coolingBody").innerHTML = '<div class="empty-state"><div class="empty-icon">🎉</div>' + coolMsg + '</div>';
+    } else {
+      var html2 = '<table><thead><tr><th>优化师</th><th>剧目</th><th>停投日期</th><th>剩余天数</th><th>冷却进度</th></tr></thead><tbody>';
+      for (var m = 0; m < cooling.length; m++) {
+        var c = cooling[m];
+        html2 += '<tr><td><strong>' + esc(c.optimizer) + '</strong></td>'
+          + '<td class="drama-name">' + esc(c.drama) + '</td>'
+          + '<td>' + fmt(c.stopDate) + '</td>'
+          + '<td><div class="days-left">' + c.daysLeft + ' 天</div>'
+          + '<div class="recovery-date">' + fmt(c.recoveryDate) + ' 可恢复</div></td>'
+          + '<td style="min-width:120px"><div style="font-size:12px;color:#888;margin-bottom:2px">'
+          + c.cooledDays + ' / ' + RECOVERY_META.cooldown + ' 天</div>'
+          + '<div class="progress-bar"><div class="progress-fill fill-orange" style="width:'
+          + c.progress + '%"></div></div></td></tr>';
+      }
+      html2 += '</tbody></table>';
+      document.getElementById("coolingBody").innerHTML = html2;
+    }
+
+    // Show/hide sections based on days filter
+    document.getElementById("readySection").style.display = (daysVal === "1-3" || daysVal === "4-7" || daysVal === "8-14") ? "none" : "";
+    document.getElementById("coolingSection").style.display = (daysVal === "ready") ? "none" : "";
   }
 
   function parseDate(s) {
