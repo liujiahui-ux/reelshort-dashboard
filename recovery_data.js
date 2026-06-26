@@ -36,6 +36,13 @@ var STOP_RECORDS=[
 ["cxd","Djinn Under Contract","2026-06-24"],
 ["yjn","My Brothers Begged, But I'm the Dragon's Queen","2026-06-24"],
 ["yjn","The Hockey Captain That Hates Me","2026-06-24"],
-["szy","The Hockey Captain That Hates Me","2026-06-24"]
+["szy","The Hockey Captain That Hates Me","2026-06-24"],
+["FEE","The Luna's Second Choice","2026-06-26"],
+["Cecilia","The Luna's Second Choice","2026-06-26"],
+["wgh","My Brothers Begged, But I'm the Dragon's Queen","2026-06-26"],
+["LDH","I Accidentally Sexted My Enemy","2026-06-26"],
+["cxd","The Hockey Captain That Hates Me","2026-06-26"],
+["Dora","I Accidentally Sexted My Enemy","2026-06-26"],
+["liuw","I Accidentally Sexted My Enemy","2026-06-26"]
 ];
-var RECOVERY_META={cooldown:14,update:"2026-06-24"};
+var RECOVERY_META={cooldown:14,update:"2026-06-26"};
