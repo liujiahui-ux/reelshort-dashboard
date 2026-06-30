@@ -48,6 +48,22 @@ var STOP_RECORDS=[
 ["LS", "My Brothers Begged, But I'm the Dragon's Queen", "2026-06-29"],
 ["Cecilia", "My Brothers Begged, But I'm the Dragon's Queen", "2026-06-29"],
 ["Mike", "The Hockey Captain That Hates Me", "2026-06-29"],
-["LDH", "My Brothers Begged, But I'm the Dragon's Queen", "2026-06-29"]
+["LDH", "My Brothers Begged, But I'm the Dragon's Queen", "2026-06-29"],
+["zhb", "Fiancée's Betrayal, Dante's Inferno", "2026-06-30", 7],
+["zsp", "Fiancée's Betrayal, Dante's Inferno", "2026-06-30", 7],
+["wgh", "Fiancée's Betrayal, Dante's Inferno", "2026-06-30", 7],
+["LS", "Fiancée's Betrayal, Dante's Inferno", "2026-06-30", 7],
+["wky", "Fiancée's Betrayal, Dante's Inferno", "2026-06-30", 7],
+["yjn", "Fiancée's Betrayal, Dante's Inferno", "2026-06-30", 7],
+["ymy", "Fiancée's Betrayal, Dante's Inferno", "2026-06-30", 7],
+["szy", "Fiancée's Betrayal, Dante's Inferno", "2026-06-30", 7],
+["zyf", "Fiancée's Betrayal, Dante's Inferno", "2026-06-30", 7],
+["cxd", "Fiancée's Betrayal, Dante's Inferno", "2026-06-30", 7],
+["CSH", "Fiancée's Betrayal, Dante's Inferno", "2026-06-30", 7],
+["Dora", "Fiancée's Betrayal, Dante's Inferno", "2026-06-30", 7],
+["FEE", "Fiancée's Betrayal, Dante's Inferno", "2026-06-30", 7],
+["LDH", "Fiancée's Betrayal, Dante's Inferno", "2026-06-30", 7],
+["SYQ", "Fiancée's Betrayal, Dante's Inferno", "2026-06-30", 7],
+["Viven", "Fiancée's Betrayal, Dante's Inferno", "2026-06-30", 7]
 ];
-var RECOVERY_META={cooldown:14,update:"2026-06-29"};
+var RECOVERY_META={cooldown:14,update:"2026-06-30"};
