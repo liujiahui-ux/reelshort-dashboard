@@ -84,7 +84,7 @@ tr:hover td{background:#fafbfc}
   <div class="sub">
     <span id="hdrUpdate">数据更新：--</span>
     <span id="hdrToday">当前日期：--</span>
-    <span>冷却期：14天（次日起算）</span>
+    <span>默认冷却期：14天（次日起算）</span>
   </div>
 </div>
 
@@ -163,14 +163,15 @@ tr:hover td{background:#fafbfc}
     var optimizer = r[0];
     var drama = r[1];
     var stopDate = parseDate(r[2]);
+    var cooldown = r[3] || RECOVERY_META.cooldown;
     var recoveryDate = new Date(stopDate);
-    recoveryDate.setDate(recoveryDate.getDate() + RECOVERY_META.cooldown + 1);
+    recoveryDate.setDate(recoveryDate.getDate) + cooldown + 1);
     var diffMs = recoveryDate.getTime() - today.getTime();
     var daysLeft = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
     var elapsed = Math.floor((today.getTime() - stopDate.getTime()) / (1000*60*60*24));
     var cooledDays = Math.max(0, elapsed - 1);
-    var progress = Math.min(100, Math.round(cooledDays / RECOVERY_META.cooldown * 100));
-    var item = {optimizer:optimizer, drama:drama, stopDate:stopDate, recoveryDate:recoveryDate, daysLeft:daysLeft, progress:progress, cooledDays:cooledDays, isReady: daysLeft <= 0};
+    var progress = Math.min(100, Math.round(cooledDays / cooldown * 100));
+    var item = {optimizer:optimizer, drama:drama, stopDate:stopDate, recoveryDate:recoveryDate, daysLeft:daysLeft, progress:progress, cooledDays:cooledDays, cooldown:cooldown, isReady: daysLeft <= 0};
     allItems.push(item);
     optSet[optimizer] = true;
   }
@@ -326,7 +327,7 @@ tr:hover td{background:#fafbfc}
           + '<td><div class="days-left">' + c.daysLeft + ' 天</div>'
           + '<div class="recovery-date">' + fmt(c.recoveryDate) + ' 可恢复</div></td>'
           + '<td style="min-width:120px"><div style="font-size:12px;color:#888;margin-bottom:2px">'
-          + c.cooledDays + ' / ' + RECOVERY_META.cooldown + ' 天</div>'
+          + c.cooledDays + ' / ' + c.cooldown + ' 天' + (c.cooldown !== RECOVERY_META.cooldown ? ' ⚡' : '') + '</div>'
           + '<div class="progress-bar"><div class="progress-fill fill-orange" style="width:'
           + c.progress + '%"></div></div></td></tr>';
       }
