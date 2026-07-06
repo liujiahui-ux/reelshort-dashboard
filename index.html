@@ -96,7 +96,7 @@ tr:hover { background: #F8F9FA; }
 </div>
 <div class="footer">ReelShort UA Team | 跟投管理政策 v2.0 | 评估粒度：优化师 × 剧目 | 达标率=D0回收/D0目标(≥85%达标)</div>
 
-<script>document.write('<scr'+'ipt src="https://raw.githubusercontent.com/liujiahui-ux/reelshort-dashboard/main/data.js?v='+Date.now()+'"><\/scr'+'ipt>');</script>
+<script>document.write('<scr'+'ipt src="data.js?v='+Date.now()+'"><\/scr'+'ipt>');</script>
 <script>
 if(typeof DATA_RAW!=="undefined"){
 var _SM={A:"止损",B:"取消",C:"降量",D:"已停投(止损)",E:"已停投(取消)",F:"已停投(降量)",G:"正常",H:"数据不足",I:"预警"};
@@ -180,7 +180,6 @@ a.download='ReelShort跟投监控_'+new Date().toISOString().slice(0,10)+'.csv';
 initDashboard();
 </script>
 
-<script>document.write('<scr'+'ipt src="data.js?v='+Date.now()+'"><\/scr'+'ipt>');</script>
 
 <div id="adminPanel" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:10000;justify-content:center;align-items:center"><div style="background:#fff;border-radius:12px;padding:30px;max-width:450px;width:90%;text-align:center"><h3 style="margin:0 0 15px">data.js 数据更新</h3><p style="color:#666;font-size:14px;margin:0 0 20px">选择本地 data.js 文件，点击上传即可更新看板数据</p><input type="file" id="dataFileInput" accept=".js" style="margin:0 0 15px;font-size:14px"><br><button id="uploadBtn" style="background:#1890ff;color:#fff;border:none;padding:10px 30px;border-radius:6px;font-size:15px;cursor:pointer" disabled>选择文件后上传</button><button onclick="document.getElementById('adminPanel').style.display='none'" style="background:#f5f5f5;color:#666;border:none;padding:10px 20px;border-radius:6px;font-size:14px;cursor:pointer;margin-left:10px">关闭</button><p id="uploadStatus" style="margin:15px 0 0;font-size:13px;color:#999"></p></div></div>
 <script>
