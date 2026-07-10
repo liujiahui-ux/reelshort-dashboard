@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ReelShort 恢复投放提醒看板</title>
+<title>ReelShort æ¢å¤ææ¾æéçæ¿</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f0f2f5;color:#1a1a2e;line-height:1.6}
@@ -80,52 +80,52 @@ tr:hover td{background:#fafbfc}
 </head>
 <body>
 <div class="header">
-  <h1>ReelShort 恢复投放提醒看板</h1>
+  <h1>ReelShort æ¢å¤ææ¾æéçæ¿</h1>
   <div class="sub">
-    <span id="hdrUpdate">数据更新：--</span>
-    <span id="hdrToday">当前日期：--</span>
-    <span>默认冷却期：14天（次日起算）</span>
+    <span id="hdrUpdate">æ°æ®æ´æ°ï¼--</span>
+    <span id="hdrToday">å½åæ¥æï¼--</span>
+    <span>é»è®¤å·å´æï¼14å¤©ï¼æ¬¡æ¥èµ·ç®ï¼</span>
   </div>
 </div>
 
 <div class="container">
   <div class="summary-row">
     <div class="summary-card card-green">
-      <div class="label">今日可申请恢复</div>
+      <div class="label">ä»æ¥å¯ç³è¯·æ¢å¤</div>
       <div class="num" id="readyCount">0</div>
-      <div class="label">组（优化师×剧目）</div>
+      <div class="label">ç»ï¼ä¼åå¸Ãå§ç®ï¼</div>
     </div>
     <div class="summary-card card-orange">
-      <div class="label">冷却中（暂不可恢复）</div>
+      <div class="label">å·å´ä¸­ï¼æä¸å¯æ¢å¤ï¼</div>
       <div class="num" id="coolingCount">0</div>
-      <div class="label">组（优化师×剧目）</div>
+      <div class="label">ç»ï¼ä¼åå¸Ãå§ç®ï¼</div>
     </div>
   </div>
 
   <!-- Filter bar -->
   <div class="filter-bar">
-    <span class="filter-label">筛选：</span>
+    <span class="filter-label">ç­éï¼</span>
     <div class="filter-group" id="optFilterGroup">
       <div class="filter-btn" id="optFilterBtn" onclick="toggleDropdown()">
-        <span id="optFilterText">全部优化师</span>
-        <span class="arrow">▼</span>
+        <span id="optFilterText">å¨é¨ä¼åå¸</span>
+        <span class="arrow">â¼</span>
       </div>
       <div class="filter-dropdown" id="optDropdown"></div>
     </div>
     <select class="filter-select" id="daysFilter" onchange="applyFilters()">
-      <option value="all">全部剩余天数</option>
-      <option value="ready">已到期（可恢复）</option>
-      <option value="1-3">1-3 天</option>
-      <option value="4-7">4-7 天</option>
-      <option value="8-14">8-14 天</option>
+      <option value="all">å¨é¨å©ä½å¤©æ°</option>
+      <option value="ready">å·²å°æï¼å¯æ¢å¤ï¼</option>
+      <option value="1-3">1-3 å¤©</option>
+      <option value="4-7">4-7 å¤©</option>
+      <option value="8-14">8-14 å¤©</option>
     </select>
     <span class="filter-count" id="filterCount"></span>
   </div>
 
   <div class="section section-green" id="readySection">
     <div class="section-header">
-      <span class="icon">✅</span>
-      <span>今日可申请恢复投放</span>
+      <span class="icon">â</span>
+      <span>ä»æ¥å¯ç³è¯·æ¢å¤ææ¾</span>
       <span class="count" id="readyBadge">0</span>
     </div>
     <div id="readyBody"></div>
@@ -133,8 +133,8 @@ tr:hover td{background:#fafbfc}
 
   <div class="section section-orange" id="coolingSection">
     <div class="section-header">
-      <span class="icon">⏳</span>
-      <span>冷却倒计时</span>
+      <span class="icon">â³</span>
+      <span>å·å´åè®¡æ¶</span>
       <span class="count" id="coolingBadge">0</span>
     </div>
     <div id="coolingBody"></div>
@@ -143,7 +143,7 @@ tr:hover td{background:#fafbfc}
 </div>
 
 <div class="footer">
-  ReelShort 跟投管理系统 · 仅限内部使用 · 被动停投冷却期14天（次日起算）
+  ReelShort è·æç®¡çç³»ç» Â· ä»éåé¨ä½¿ç¨ Â· è¢«å¨åæå·å´æ14å¤©ï¼æ¬¡æ¥èµ·ç®ï¼
 </div>
 
 <script>document.write('<scr'+'ipt src="recovery_data.js?v='+Date.now()+'"><\/scr'+'ipt>');</script>
@@ -152,8 +152,8 @@ tr:hover td{background:#fafbfc}
   var today = new Date();
   today = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
-  document.getElementById("hdrUpdate").textContent = "数据更新：" + RECOVERY_META.update;
-  document.getElementById("hdrToday").textContent = "当前日期：" + fmt(today);
+  document.getElementById("hdrUpdate").textContent = "æ°æ®æ´æ°ï¼" + RECOVERY_META.update;
+  document.getElementById("hdrToday").textContent = "å½åæ¥æï¼" + fmt(today);
 
   // Parse all records
   var allItems = [];
@@ -165,7 +165,7 @@ tr:hover td{background:#fafbfc}
     var stopDate = parseDate(r[2]);
     var cooldown = r[3] || RECOVERY_META.cooldown;
     var recoveryDate = new Date(stopDate);
-    recoveryDate.setDate(recoveryDate.getDate) + cooldown + 1);
+    recoveryDate.setDate(recoveryDate.getDate() + cooldown + 1);
     var diffMs = recoveryDate.getTime() - today.getTime();
     var daysLeft = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
     var elapsed = Math.floor((today.getTime() - stopDate.getTime()) / (1000*60*60*24));
@@ -193,7 +193,7 @@ tr:hover td{background:#fafbfc}
 
   function buildOptDropdown(list) {
     var dd = document.getElementById("optDropdown");
-    var html = '<div class="fd-actions"><button class="btn-all" onclick="selectAllOpts()">全选</button><button class="btn-clear" onclick="clearOpts()">清除</button></div>';
+    var html = '<div class="fd-actions"><button class="btn-all" onclick="selectAllOpts()">å¨é</button><button class="btn-clear" onclick="clearOpts()">æ¸é¤</button></div>';
     for (var i = 0; i < list.length; i++) {
       html += '<div class="fd-item" onclick="toggleOpt(\'' + esc(list[i]) + '\',event)">'
         + '<input type="checkbox" checked data-opt="' + esc(list[i]) + '"> '
@@ -256,13 +256,13 @@ tr:hover td{background:#fafbfc}
     // Update button text
     var btnText = document.getElementById("optFilterText");
     if (opts.allSelected) {
-      btnText.textContent = "全部优化师";
+      btnText.textContent = "å¨é¨ä¼åå¸";
     } else if (opts.selected.length === 0) {
-      btnText.textContent = "请选择";
+      btnText.textContent = "è¯·éæ©";
     } else if (opts.selected.length <= 2) {
       btnText.textContent = opts.selected.join(", ");
     } else {
-      btnText.textContent = opts.selected.length + " 位已选";
+      btnText.textContent = opts.selected.length + " ä½å·²é";
     }
 
     // Filter items
@@ -293,21 +293,21 @@ tr:hover td{background:#fafbfc}
     document.getElementById("coolingCount").textContent = cooling.length;
     document.getElementById("readyBadge").textContent = ready.length;
     document.getElementById("coolingBadge").textContent = cooling.length;
-    document.getElementById("filterCount").textContent = "显示 " + filtered.length + " / " + allItems.length + " 条";
+    document.getElementById("filterCount").textContent = "æ¾ç¤º " + filtered.length + " / " + allItems.length + " æ¡";
 
     // Render ready section
     if (ready.length === 0) {
-      var readyMsg = daysVal !== "all" || !opts.allSelected ? "当前筛选条件下暂无可恢复的组合" : "今日暂无可恢复的投放组合";
-      document.getElementById("readyBody").innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div>' + readyMsg + '<br><small>当冷却期满14天后，对应组合会出现在这里</small></div>';
+      var readyMsg = daysVal !== "all" || !opts.allSelected ? "å½åç­éæ¡ä»¶ä¸ææ å¯æ¢å¤çç»å" : "ä»æ¥ææ å¯æ¢å¤çææ¾ç»å";
+      document.getElementById("readyBody").innerHTML = '<div class="empty-state"><div class="empty-icon">ð</div>' + readyMsg + '<br><small>å½å·å´ææ»¡14å¤©åï¼å¯¹åºç»åä¼åºç°å¨è¿é</small></div>';
     } else {
-      var html = '<table><thead><tr><th>优化师</th><th>剧目</th><th>停投日期</th><th>可恢复日期</th><th>状态</th></tr></thead><tbody>';
+      var html = '<table><thead><tr><th>ä¼åå¸</th><th>å§ç®</th><th>åææ¥æ</th><th>å¯æ¢å¤æ¥æ</th><th>ç¶æ</th></tr></thead><tbody>';
       for (var k = 0; k < ready.length; k++) {
         var ri = ready[k];
         html += '<tr><td><strong>' + esc(ri.optimizer) + '</strong></td>'
           + '<td class="drama-name">' + esc(ri.drama) + '</td>'
           + '<td>' + fmt(ri.stopDate) + '</td>'
           + '<td>' + fmt(ri.recoveryDate) + '</td>'
-          + '<td><span class="badge-ready">可申请恢复</span></td></tr>';
+          + '<td><span class="badge-ready">å¯ç³è¯·æ¢å¤</span></td></tr>';
       }
       html += '</tbody></table>';
       document.getElementById("readyBody").innerHTML = html;
@@ -315,19 +315,19 @@ tr:hover td{background:#fafbfc}
 
     // Render cooling section
     if (cooling.length === 0) {
-      var coolMsg = daysVal !== "all" || !opts.allSelected ? "当前筛选条件下暂无冷却中的组合" : "所有被动停投组合均已度过冷却期！";
-      document.getElementById("coolingBody").innerHTML = '<div class="empty-state"><div class="empty-icon">🎉</div>' + coolMsg + '</div>';
+      var coolMsg = daysVal !== "all" || !opts.allSelected ? "å½åç­éæ¡ä»¶ä¸ææ å·å´ä¸­çç»å" : "ææè¢«å¨åæç»ååå·²åº¦è¿å·å´æï¼";
+      document.getElementById("coolingBody").innerHTML = '<div class="empty-state"><div class="empty-icon">ð</div>' + coolMsg + '</div>';
     } else {
-      var html2 = '<table><thead><tr><th>优化师</th><th>剧目</th><th>停投日期</th><th>剩余天数</th><th>冷却进度</th></tr></thead><tbody>';
+      var html2 = '<table><thead><tr><th>ä¼åå¸</th><th>å§ç®</th><th>åææ¥æ</th><th>å©ä½å¤©æ°</th><th>å·å´è¿åº¦</th></tr></thead><tbody>';
       for (var m = 0; m < cooling.length; m++) {
         var c = cooling[m];
         html2 += '<tr><td><strong>' + esc(c.optimizer) + '</strong></td>'
           + '<td class="drama-name">' + esc(c.drama) + '</td>'
           + '<td>' + fmt(c.stopDate) + '</td>'
-          + '<td><div class="days-left">' + c.daysLeft + ' 天</div>'
-          + '<div class="recovery-date">' + fmt(c.recoveryDate) + ' 可恢复</div></td>'
+          + '<td><div class="days-left">' + c.daysLeft + ' å¤©</div>'
+          + '<div class="recovery-date">' + fmt(c.recoveryDate) + ' å¯æ¢å¤</div></td>'
           + '<td style="min-width:120px"><div style="font-size:12px;color:#888;margin-bottom:2px">'
-          + c.cooledDays + ' / ' + c.cooldown + ' 天' + (c.cooldown !== RECOVERY_META.cooldown ? ' ⚡' : '') + '</div>'
+          + c.cooledDays + ' / ' + c.cooldown + ' å¤©' + (c.cooldown !== RECOVERY_META.cooldown ? ' â¡' : '') + '</div>'
           + '<div class="progress-bar"><div class="progress-fill fill-orange" style="width:'
           + c.progress + '%"></div></div></td></tr>';
       }
