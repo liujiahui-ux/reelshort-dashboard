@@ -74,7 +74,6 @@ var STOP_RECORDS=[
 ["szy", "Djinn Under Contract", "2026-07-09"],
 ["yjn", "Not the Bride He Wanted", "2026-07-09"],
 ["Mike", "Brides in Smoke", "2026-07-18"],
-["wgh", "My X-Ray Vision Sees Right Through You", "2026-07-18"],
 ["ZJH", "My X-Ray Vision Sees Right Through You", "2026-07-18"],
 ["LYX", "My X-Ray Vision Sees Right Through You", "2026-07-18"],
 ["zhub", "Brides in Smoke", "2026-07-18"],
